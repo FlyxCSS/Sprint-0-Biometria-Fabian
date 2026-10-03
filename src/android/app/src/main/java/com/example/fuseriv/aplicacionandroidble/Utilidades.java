@@ -1,95 +1,70 @@
 package com.example.fuseriv.aplicacionandroidble;
 
-//
-import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.util.UUID;
 
-// -----------------------------------------------------------------------------------
-// @author: Jordi Bataller i Mascarell
-// -----------------------------------------------------------------------------------
+// --------------------------------------------------------------
+// Fichero: Utilidades.java
+// Descripción: Funciones auxiliares para interpretar los datos
+//              recibidos mediante Bluetooth.
+// Fecha: 2026-10-03
+// Autor: Fabián Useche
+// Base del código: Jordi Bataller i Mascarell
+// Aportación: simplificación y conversión de ppb a ppm.
+// Copyright: material académico y modificaciones del autor.
+// --------------------------------------------------------------
+
 public class Utilidades {
 
-    // -------------------------------------------------------------------------------
-    // -------------------------------------------------------------------------------
-    public static byte[] stringToBytes ( String texto ) {
-        return texto.getBytes();
-        // byte[] b = string.getBytes(StandardCharsets.UTF_8); // Ja
-    } // ()
 
-    // -------------------------------------------------------------------------------
-    // -------------------------------------------------------------------------------
-    public static UUID stringToUUID( String uuid ) {
-        if ( uuid.length() != 16 ) {
-            throw new Error( "stringUUID: string no tiene 16 caracteres ");
-        }
-        byte[] comoBytes = uuid.getBytes();
+    // ------------------------------------------------------------
+    // bytes --> bytesToString() --> Text
+    //
+    // Convierte un conjunto de bytes en texto.
+// ------------------------------------------------------------
+    public static String bytesToString(
+            byte[] bytes
+    ) {
 
-        String masSignificativo = uuid.substring(0, 8);
-        String menosSignificativo = uuid.substring(8, 16);
-        UUID res = new UUID( Utilidades.bytesToLong( masSignificativo.getBytes() ), Utilidades.bytesToLong( menosSignificativo.getBytes() ) );
+        if (bytes == null) {
 
-        // Log.d( MainActivity.ETIQUETA_LOG, " \n\n***** stringToUUID *** " + uuid  + "=?=" + Utilidades.uuidToString( res ) );
-
-        // UUID res = UUID.nameUUIDFromBytes( comoBytes ); no va como quiero
-
-        return res;
-    } // ()
-
-    // -------------------------------------------------------------------------------
-    // -------------------------------------------------------------------------------
-    public static String uuidToString ( UUID uuid ) {
-        return bytesToString( dosLongToBytes( uuid.getMostSignificantBits(), uuid.getLeastSignificantBits() ) );
-    } // ()
-
-    // -------------------------------------------------------------------------------
-    // -------------------------------------------------------------------------------
-    public static String uuidToHexString ( UUID uuid ) {
-        return bytesToHexString( dosLongToBytes( uuid.getMostSignificantBits(), uuid.getLeastSignificantBits() ) );
-    } // ()
-
-    // -------------------------------------------------------------------------------
-    // -------------------------------------------------------------------------------
-    public static String bytesToString( byte[] bytes ) {
-        if (bytes == null ) {
             return "";
         }
 
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            sb.append( (char) b );
+
+        StringBuilder resultado =
+                new StringBuilder();
+
+
+        for (
+                byte valor
+                : bytes
+        ) {
+
+            resultado.append(
+                    (char) valor
+            );
         }
-        return sb.toString();
-    }
 
-    // -------------------------------------------------------------------------------
-    // -------------------------------------------------------------------------------
-    public static byte[] dosLongToBytes( long masSignificativos, long menosSignificativos ) {
-        ByteBuffer buffer = ByteBuffer.allocate( 2 * Long.BYTES );
-        buffer.putLong( masSignificativos );
-        buffer.putLong( menosSignificativos );
-        return buffer.array();
-    }
 
-    // -------------------------------------------------------------------------------
-    // -------------------------------------------------------------------------------
-    public static int bytesToInt( byte[] bytes ) {
-        return new BigInteger(bytes).intValue();
-    }
+        return resultado.toString();
 
-    // -------------------------------------------------------------------------------
-    // -------------------------------------------------------------------------------
-    public static long bytesToLong( byte[] bytes ) {
-        return new BigInteger(bytes).longValue();
-    }
+    } // bytesToString()
 
-    // -------------------------------------------------------------------------------
-    // -------------------------------------------------------------------------------
-    public static int bytesToIntOK(byte[] bytes) {
+
+    // ------------------------------------------------------------
+    // bytes --> bytesToIntOK() --> N
+    //
+    // Convierte hasta cuatro bytes sin signo y en orden
+    // big-endian en un número entero.
+    // ------------------------------------------------------------
+    public static int bytesToIntOK(
+            byte[] bytes
+    ) {
 
         if (bytes == null) {
+
             return 0;
         }
+
 
         if (bytes.length > 4) {
 
@@ -99,39 +74,89 @@ public class Utilidades {
         }
 
 
-        int resultado = 0;
+        int resultado =
+                0;
 
 
-        for (byte b : bytes) {
+        for (
+                byte valor
+                : bytes
+        ) {
 
             resultado =
                     (resultado << 8)
-                            | (b & 0xFF);
+                            |
+                            (valor & 0xFF);
         }
 
 
         return resultado;
-    }// ()
 
-    // -------------------------------------------------------------------------------
-    // -------------------------------------------------------------------------------
-    public static String bytesToHexString( byte[] bytes ) {
+    } // bytesToIntOK()
 
-        if (bytes == null ) {
+
+    // ------------------------------------------------------------
+    // bytes --> bytesToHexString() --> Text
+    //
+    // Convierte bytes en una representación hexadecimal.
+    // ------------------------------------------------------------
+    public static String bytesToHexString(
+            byte[] bytes
+    ) {
+
+        if (bytes == null) {
+
             return "";
         }
 
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            sb.append(String.format("%02x", b));
-            sb.append(':');
+
+        StringBuilder resultado =
+                new StringBuilder();
+
+
+        for (
+                int i = 0;
+                i < bytes.length;
+                i++
+        ) {
+
+            resultado.append(
+                    String.format(
+                            "%02x",
+                            bytes[i] & 0xFF
+                    )
+            );
+
+
+            if (
+                    i
+                            < bytes.length - 1
+            ) {
+
+                resultado.append(
+                        ":"
+                );
+            }
         }
-        return sb.toString();
-    } // ()
-} // class
-// -----------------------------------------------------------------------------------
-// -----------------------------------------------------------------------------------
-// -----------------------------------------------------------------------------------
-// -----------------------------------------------------------------------------------
 
 
+        return resultado.toString();
+
+    } // bytesToHexString()
+
+
+    // ------------------------------------------------------------
+    // ppb: N --> ppbAPpm() --> R
+    //
+    // Convierte una concentración expresada en ppb a ppm.
+    // ------------------------------------------------------------
+    public static double ppbAPpm(
+            int ppb
+    ) {
+
+        return
+                ppb / 1000.0;
+
+    } // ppbAPpm()
+
+} // class Utilidades

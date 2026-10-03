@@ -1,8 +1,13 @@
 -- ------------------------------------------------------------
--- BASE DE DATOS - SPRINT 0
--- Proyecto de Biometría y Medio Ambiente
+-- Fichero: database.sql
+-- Descripción: Creación de la base de datos utilizada para
+--              almacenar las mediciones del Sprint 0.
+-- Fecha: 2026-10-04
 -- Autor: Fabián Useche
+-- Aportación: diseño e implementación de la tabla Mediciones.
+-- Copyright: material académico y modificaciones del autor.
 -- ------------------------------------------------------------
+
 
 -- ------------------------------------------------------------
 -- Tabla: Mediciones
@@ -11,12 +16,13 @@
 --
 -- Mediciones = (
 --     id: N,
---     fecha: Texto,
---     tipo: Texto,
+--     fecha: Text,
+--     tipo: Text,
 --     valor: R
 -- )
 --
--- Cada fila representa una medición recibida desde el móvil.
+-- Cada fila representa una medición almacenada por la lógica
+-- de negocio.
 -- ------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS Mediciones (
@@ -33,60 +39,36 @@ CREATE TABLE IF NOT EXISTS Mediciones (
 
 
 -- ------------------------------------------------------------
--- DATOS DE PRUEBA
+-- CONSULTAS DE PRUEBA MANUAL
+--
+-- Estas consultas quedan comentadas para evitar modificar
+-- accidentalmente los datos reales de la base de datos.
 -- ------------------------------------------------------------
 
-INSERT INTO Mediciones (
-    fecha,
-    tipo,
-    valor
-)
-VALUES (
-    '2026-09-28 16:25:00',
-    'O3',
-    0.032
-);
+
+-- Insertar una medición de prueba:
+--
+-- INSERT INTO Mediciones (
+--     fecha,
+--     tipo,
+--     valor
+-- )
+-- VALUES (
+--     '2026-10-04 12:00:00',
+--     'O3',
+--     1.234
+-- );
 
 
-INSERT INTO Mediciones (
-    fecha,
-    tipo,
-    valor
-)
-VALUES (
-    '2026-09-28 16:26:00',
-    'O3',
-    0.035
-);
+-- Leer todas las mediciones:
+--
+-- SELECT *
+-- FROM Mediciones;
 
 
-INSERT INTO Mediciones (
-    fecha,
-    tipo,
-    valor
-)
-VALUES (
-    '2026-09-28 16:27:00',
-    'O3',
-    0.031
-);
-
-
--- ------------------------------------------------------------
--- PRUEBA 1
--- Leer todas las mediciones
--- ------------------------------------------------------------
-
-SELECT *
-FROM Mediciones;
-
-
--- ------------------------------------------------------------
--- PRUEBA 2
--- Leer la última medición almacenada
--- ------------------------------------------------------------
-
-SELECT *
-FROM Mediciones
-ORDER BY id DESC
-LIMIT 1;
+-- Leer la última medición almacenada:
+--
+-- SELECT *
+-- FROM Mediciones
+-- ORDER BY id DESC
+-- LIMIT 1;
