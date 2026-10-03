@@ -1,34 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.widget.LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp">
+
 
     <Button
-        android:id="@+id/botonBuscarDispositivosBTLE"
-        android:text="Buscar Dispositivos BTLE nou 4"
-        android:onClick="botonBuscarDispositivosBTLEPulsado"
+        android:id="@+id/botonBuscarTodos"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        />
+        android:text="Buscar todos los dispositivos BLE"
+        android:onClick="botonBuscarTodosLosDispositivosBTLEPulsado" />
+
 
     <Button
-        android:id="@+id/botonDetenerBusquedaDispositivosBTLE"
-        android:text="Detener búsaqueda Dispositivos BTLE"
-        android:onClick="botonDetenerBusquedaDispositivosBTLEPulsado"
+        android:id="@+id/botonBuscarNuestroDispositivo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        />
+        android:layout_marginTop="16dp"
+        android:text="Buscar Fabian_GTI"
+        android:onClick="botonBuscarNuestroDispositivoBTLEPulsado" />
+
 
     <Button
-        android:id="@+id/botonBuscarNuestroDispositivoBTLE"
-        android:text="Buscar nuestro dispositivo  BTLE"
-        android:onClick="botonBuscarNuestroDispositivoBTLEPulsado"
+        android:id="@+id/botonDetenerBusqueda"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        />
+        android:layout_marginTop="16dp"
+        android:text="Detener búsqueda"
+        android:onClick="botonDetenerBusquedaDispositivosBTLEPulsado" />
 
-</android.widget.LinearLayout>
+
+</LinearLayout>

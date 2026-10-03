@@ -2,39 +2,48 @@ package com.example.fuseriv.aplicacionandroidble;
 
 import java.util.Arrays;
 
+
+// --------------------------------------------------------------
+// Fichero: TramaIBeacon.java
+// Descripción: Representación de los campos utilizados de una
+//              trama iBeacon recibida mediante BLE.
+// Fecha: 2026-10-03
+// Autor: Fabián Useche
+// Base del código: Jordi Bataller i Mascarell
+// Aportación: simplificación para UUID, Major, Minor y TxPower.
+// Copyright: material académico y modificaciones del autor.
+// --------------------------------------------------------------
+
 public class TramaIBeacon {
 
-    private byte[] prefijo;
-    private byte[] uuid;
-    private byte[] major;
-    private byte[] minor;
+    private final byte[] uuid;
 
-    private byte txPower;
+    private final byte[] major;
 
-    private byte[] advFlags;
-    private byte[] advHeader;
-    private byte[] companyID;
+    private final byte[] minor;
 
-    private byte iBeaconType;
-    private byte iBeaconLength;
+    private final byte txPower;
 
 
-    public TramaIBeacon(byte[] bytes) {
+    // ------------------------------------------------------------
+    // bytes --> TramaIBeacon()
+    //
+    // Extrae UUID, Major, Minor y TxPower de una trama iBeacon.
+    // ------------------------------------------------------------
+    public TramaIBeacon(
+            byte[] bytes
+    ) {
 
-        if (bytes == null || bytes.length < 30) {
+        if (
+                bytes == null
+                        ||
+                        bytes.length < 30
+        ) {
 
             throw new IllegalArgumentException(
                     "La trama iBeacon necesita al menos 30 bytes"
             );
         }
-
-
-        prefijo =
-                Arrays.copyOfRange(
-                        bytes,
-                        0,
-                        9
-                );
 
 
         uuid =
@@ -64,86 +73,54 @@ public class TramaIBeacon {
         txPower =
                 bytes[29];
 
-
-        advFlags =
-                Arrays.copyOfRange(
-                        prefijo,
-                        0,
-                        3
-                );
+    } // TramaIBeacon()
 
 
-        advHeader =
-                Arrays.copyOfRange(
-                        prefijo,
-                        3,
-                        5
-                );
-
-
-        companyID =
-                Arrays.copyOfRange(
-                        prefijo,
-                        5,
-                        7
-                );
-
-
-        iBeaconType =
-                prefijo[7];
-
-
-        iBeaconLength =
-                prefijo[8];
-    }
-
-
-    public byte[] getPrefijo() {
-        return prefijo;
-    }
-
-
+    // ------------------------------------------------------------
+    // getUUID() --> [N]_16
+    //
+    // Devuelve el UUID recibido.
+    // ------------------------------------------------------------
     public byte[] getUUID() {
+
         return uuid;
-    }
+
+    } // getUUID()
 
 
+    // ------------------------------------------------------------
+    // getMajor() --> [N]_2
+    //
+    // Devuelve los dos bytes del campo Major.
+    // ------------------------------------------------------------
     public byte[] getMajor() {
+
         return major;
-    }
+
+    } // getMajor()
 
 
+    // ------------------------------------------------------------
+    // getMinor() --> [N]_2
+    //
+    // Devuelve los dos bytes del campo Minor.
+    // ------------------------------------------------------------
     public byte[] getMinor() {
+
         return minor;
-    }
+
+    } // getMinor()
 
 
+    // ------------------------------------------------------------
+    // getTxPower() --> Z
+    //
+    // Devuelve el TxPower recibido en la trama.
+    // ------------------------------------------------------------
     public byte getTxPower() {
+
         return txPower;
-    }
 
+    } // getTxPower()
 
-    public byte[] getAdvFlags() {
-        return advFlags;
-    }
-
-
-    public byte[] getAdvHeader() {
-        return advHeader;
-    }
-
-
-    public byte[] getCompanyID() {
-        return companyID;
-    }
-
-
-    public byte getiBeaconType() {
-        return iBeaconType;
-    }
-
-
-    public byte getiBeaconLength() {
-        return iBeaconLength;
-    }
-}
+} // class TramaIBeacon

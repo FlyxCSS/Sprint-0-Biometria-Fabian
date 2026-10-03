@@ -2,7 +2,7 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Android antiguos -->
+    <!-- Bluetooth para Android 11 o inferior -->
     <uses-permission
         android:name="android.permission.BLUETOOTH"
         android:maxSdkVersion="30" />
@@ -11,17 +11,31 @@
         android:name="android.permission.BLUETOOTH_ADMIN"
         android:maxSdkVersion="30" />
 
-    <!-- Ubicación necesaria para el escaneo BLE/beacons -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Android 12+ -->
+    <!-- Permisos utilizados durante el escaneo BLE -->
+    <uses-permission
+        android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <uses-permission
+        android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+
+    <!-- Bluetooth para Android 12 o superior -->
     <uses-permission
         android:name="android.permission.BLUETOOTH_SCAN" />
 
     <uses-permission
         android:name="android.permission.BLUETOOTH_CONNECT" />
+
+
+    <!-- Acceso al servidor REST -->
+    <uses-permission
+        android:name="android.permission.INTERNET" />
+
+
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="true" />
 
 
     <application
@@ -40,9 +54,11 @@
 
             <intent-filter>
 
-                <action android:name="android.intent.action.MAIN" />
+                <action
+                    android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
+                <category
+                    android:name="android.intent.category.LAUNCHER" />
 
             </intent-filter>
 
