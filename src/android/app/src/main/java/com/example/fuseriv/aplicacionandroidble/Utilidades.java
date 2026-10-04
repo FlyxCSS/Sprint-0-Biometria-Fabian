@@ -16,10 +16,11 @@ public class Utilidades {
 
 
     // ------------------------------------------------------------
-    // bytes --> bytesToString() --> Text
+    // bytes: Bytes --> bytesToString() --x
+    // Text <--
     //
     // Convierte un conjunto de bytes en texto.
-// ------------------------------------------------------------
+    // ------------------------------------------------------------
     public static String bytesToString(
             byte[] bytes
     ) {
@@ -51,7 +52,8 @@ public class Utilidades {
 
 
     // ------------------------------------------------------------
-    // bytes --> bytesToIntOK() --> N
+    // bytes: Bytes --> bytesToIntOK() --x
+    // N <--
     //
     // Convierte hasta cuatro bytes sin signo y en orden
     // big-endian en un número entero.
@@ -96,7 +98,8 @@ public class Utilidades {
 
 
     // ------------------------------------------------------------
-    // bytes --> bytesToHexString() --> Text
+    // bytes: Bytes --> bytesToHexString() --x
+    // Text <--
     //
     // Convierte bytes en una representación hexadecimal.
     // ------------------------------------------------------------
@@ -146,7 +149,8 @@ public class Utilidades {
 
 
     // ------------------------------------------------------------
-    // ppb: N --> ppbAPpm() --> R
+    // ppb: N --> ppbAPpm() --x
+    // R <--
     //
     // Convierte una concentración expresada en ppb a ppm.
     // ------------------------------------------------------------
