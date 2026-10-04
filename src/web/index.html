@@ -2,55 +2,180 @@
 <html lang="es">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Calidad del Aire</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <link rel="stylesheet" href="css/estilos.css">
+
+    <!--
+    ------------------------------------------------------------
+    Fichero: index.html
+    Descripción: Interfaz web para mostrar la última medición.
+    Fecha: 2026-10-04
+    Autor: Fabián Useche
+    Aportación: interfaz web del Sprint 0.
+    Copyright: material académico y modificaciones del autor.
+    ------------------------------------------------------------
+    -->
+
+
+    <title>
+        Calidad del Aire
+    </title>
+
+
+    <link
+        rel="stylesheet"
+        href="css/estilos.css"
+    >
+
 </head>
+
 
 <body>
 
-<div class="contenedor">
 
-    <h1>Calidad del Aire</h1>
+<main class="contenedor">
 
-    <div class="tarjeta">
 
-        <h2>Última medición</h2>
+    <header class="cabecera">
 
-        <div class="dato">
-            <span class="etiqueta">Tipo:</span>
-            <span id="tipo">-</span>
+        <h1>
+            Calidad del Aire
+        </h1>
+
+        <p>
+            Monitorización ambiental
+        </p>
+
+    </header>
+
+
+    <section class="tarjeta">
+
+
+        <h2>
+            Última medición
+        </h2>
+
+
+        <div class="contenido-medicion">
+
+
+            <!-- Datos de la medición -->
+
+            <div class="datos">
+
+
+                <div class="dato">
+
+                    <span class="etiqueta">
+                        Tipo
+                    </span>
+
+                    <span
+                        id="tipo"
+                        class="valor"
+                    >
+                        -
+                    </span>
+
+                </div>
+
+
+                <div class="dato">
+
+                    <span class="etiqueta">
+                        Valor
+                    </span>
+
+                    <span
+                        id="valor"
+                        class="valor valor-principal"
+                    >
+                        -
+                    </span>
+
+                </div>
+
+
+                <div class="dato">
+
+                    <span class="etiqueta">
+                        Fecha
+                    </span>
+
+                    <span
+                        id="fecha"
+                        class="valor"
+                    >
+                        -
+                    </span>
+
+                </div>
+
+
+                <div class="dato">
+
+                    <span class="etiqueta">
+                        Hora
+                    </span>
+
+                    <span
+                        id="hora"
+                        class="valor"
+                    >
+                        -
+                    </span>
+
+                </div>
+
+
+            </div>
+
+
+            <!-- Controles -->
+
+            <div class="controles">
+
+
+                <button id="botonActualizar">
+
+                    Actualizar
+
+                </button>
+
+
+                <span id="ultimaActualizacion">
+
+                    Todavía no se ha actualizado
+
+                </span>
+
+
+            </div>
+
+
         </div>
 
-        <div class="dato">
-            <span class="etiqueta">Valor:</span>
-            <span id="valor">-</span>
-        </div>
-
-        <div class="dato">
-            <span class="etiqueta">Fecha:</span>
-            <span id="fecha">-</span>
-        </div>
-
-        <div class="dato">
-            <span class="etiqueta">Hora:</span>
-            <span id="hora">-</span>
-        </div>
-
-        <button id="botonActualizar">
-            Actualizar
-        </button>
 
         <div id="estado"></div>
 
-    </div>
 
-</div>
+    </section>
+
+
+</main>
+
+
+<script src="js/LogicaFake.js"></script>
 
 <script src="js/app.js"></script>
+
 
 </body>
 
