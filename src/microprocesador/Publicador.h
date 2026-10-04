@@ -49,8 +49,8 @@ private:
 public:
 
   // ------------------------------------------------------------
-  // tipo: MedicionID, contador: N
-  //        --> construirMajor() --> N
+  // tipo: MedicionID, contador: N --> construirMajor() --x
+  // N <--
   //
   // Codifica el tipo en el byte alto y el contador en el bajo.
   // No modifica el estado del objeto.

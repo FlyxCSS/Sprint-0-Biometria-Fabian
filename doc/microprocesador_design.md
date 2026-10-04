@@ -97,6 +97,8 @@ medirO3() --> N
 
 ### Publicador
 
+`construirMajor()` es un método estático. En la notación de la asignatura se marca mediante `--x`.
+
 ```text
 ---------------------- Publicador ----------------------
 |
@@ -105,7 +107,8 @@ medirO3() --> N
 | rssi: Z
 |
 tipo: MedicionID, contador: N
-    --> construirMajor() --> N
+    --> construirMajor() --x
+N <--
 |
 | encenderEmisora() -->
 |
@@ -304,6 +307,12 @@ contador = 5
 Major esperado = 2821
 ```
 
+La comprobación utilizada es:
+
+```text
+Publicador::construirMajor(O3, 5) == 2821
+```
+
 Si la función deja de producir ese resultado, la compilación falla.
 
 La prueba no necesita hardware y se ejecuta automáticamente durante la compilación.
@@ -319,6 +328,7 @@ La prueba no necesita hardware y se ejecuta automáticamente durante la compilac
 - `TEMPERATURA` queda definido para permitir futuras ampliaciones.
 - El campo `Major` contiene el tipo de medición en su byte alto y el contador en su byte bajo.
 - El contador permite diferenciar nuevas mediciones de anuncios BLE repetidos.
+- `construirMajor()` es un método estático y no depende del estado de un objeto `Publicador`.
 - El microprocesador funciona aunque el Serial Monitor no esté conectado.
 - El LED permite comprobar visualmente que la placa continúa ejecutándose.
 - La SparkFun se comunica directamente únicamente con Android mediante Bluetooth Low Energy.
@@ -333,4 +343,5 @@ La prueba no necesita hardware y se ejecuta automáticamente durante la compilac
 - El código debe ser claro y autoexplicativo, evitando comentarios innecesarios.
 - Las responsabilidades de medición, publicación BLE, comunicación Bluetooth, depuración y señalización visual deben mantenerse separadas.
 - Las funciones de lógica que puedan probarse sin hardware deben disponer de pruebas automáticas reproducibles cuando resulte adecuado.
+- Los métodos estáticos deben identificarse en la notación de diseño mediante `--x`.
 - El funcionamiento del microprocesador no debe depender de que exista un ordenador o Serial Monitor conectado.
