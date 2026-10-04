@@ -297,16 +297,22 @@ a partir de los bytes recibidos por Android.
 
 ### Utilidades
 
+Todos los métodos de `Utilidades` son estáticos. En la notación de la asignatura se marcan mediante `--x`.
+
 ```text
 ---------------- Utilidades ----------------
 |
-bytes: Bytes --> bytesToString() --> Text
+bytes: Bytes --> bytesToString() --x
+Text <--
 |
-bytes: Bytes --> bytesToIntOK() --> N
+bytes: Bytes --> bytesToIntOK() --x
+N <--
 |
-bytes: Bytes --> bytesToHexString() --> Text
+bytes: Bytes --> bytesToHexString() --x
+Text <--
 |
-ppb: N --> ppbAPpm() --> R
+ppb: N --> ppbAPpm() --x
+R <--
 |
 ---------------------------------------------
 ```
@@ -318,7 +324,8 @@ Agrupa operaciones auxiliares utilizadas para interpretar la información Blueto
 #### bytesToString()
 
 ```text
-bytes: Bytes --> bytesToString() --> Text
+bytes: Bytes --> bytesToString() --x
+Text <--
 ```
 
 Convierte una secuencia de bytes en texto.
@@ -328,7 +335,8 @@ Se utiliza principalmente para mostrar el UUID recibido.
 #### bytesToIntOK()
 
 ```text
-bytes: Bytes --> bytesToIntOK() --> N
+bytes: Bytes --> bytesToIntOK() --x
+N <--
 ```
 
 Convierte hasta cuatro bytes sin signo, utilizando orden big-endian, en un valor entero.
@@ -338,7 +346,8 @@ Se utiliza para interpretar `Major` y `Minor`.
 #### bytesToHexString()
 
 ```text
-bytes: Bytes --> bytesToHexString() --> Text
+bytes: Bytes --> bytesToHexString() --x
+Text <--
 ```
 
 Genera una representación hexadecimal de una secuencia de bytes para tareas de depuración.
@@ -346,7 +355,8 @@ Genera una representación hexadecimal de una secuencia de bytes para tareas de 
 #### ppbAPpm()
 
 ```text
-ppb: N --> ppbAPpm() --> R
+ppb: N --> ppbAPpm() --x
+R <--
 ```
 
 Convierte una concentración expresada en ppb a ppm:
@@ -496,6 +506,32 @@ El tercero detiene el escaneo BLE activo.
 
 ---
 
+### Pruebas del componente
+
+Las funciones auxiliares de `Utilidades` disponen de pruebas automáticas locales mediante JUnit.
+
+El archivo utilizado es:
+
+```text
+src/android/app/src/test/java/com/example/fuseriv/aplicacionandroidble/UtilidadesTest.java
+```
+
+Las pruebas comprueban:
+
+```text
+ppbAPpm(1234) --> 1.234
+
+bytesToIntOK(0x0B, 0x05) --> 2821
+
+bytesToHexString(0x0B, 0x05) --> "0b:05"
+
+bytesToString(65, 66, 67) --> "ABC"
+```
+
+Estas pruebas se ejecutan de forma independiente a la aplicación Android y no se ejecutan durante el funcionamiento normal de la app.
+
+---
+
 ## Aclaraciones del Diseño
 
 - La aplicación está desarrollada en Java con Android Studio.
@@ -506,12 +542,13 @@ El tercero detiene el escaneo BLE activo.
 - El contador permite evitar que una misma medición se almacene varias veces debido a las repeticiones del advertising BLE.
 - `MainActivity` gestiona Bluetooth y coordina el flujo de la aplicación.
 - `TramaIBeacon` representa los datos recibidos mediante iBeacon.
-- `Utilidades` contiene operaciones auxiliares de conversión.
+- `Utilidades` contiene operaciones auxiliares de conversión y sus métodos son estáticos.
 - `LogicaFake` representa la operación `guardarMedicion()` desde el cliente.
 - `PeticionarioREST` realiza únicamente la comunicación HTTP.
 - La lógica fake no accede directamente a la base de datos.
 - El botón de escaneo general se conserva para permitir comprobar el funcionamiento de BLE y localizar dispositivos sin aplicar filtros.
 - El nombre del beacon se mantiene centralizado en `NOMBRE_BEACON` para facilitar su modificación.
+- Las pruebas automáticas de Android se encuentran separadas del código de ejecución normal.
 
 ## Reglas Generales
 
@@ -524,5 +561,6 @@ El tercero detiene el escaneo BLE activo.
 - `MainActivity` no debe construir directamente peticiones HTTP.
 - `LogicaFake` debe utilizar `PeticionarioREST` para acceder al servidor.
 - La aplicación no debe acceder directamente a la base de datos.
-- Las funciones de lógica independientes del sistema Android o del hardware deben poder probarse automáticamente cuando resulte adecuado.
+- Las funciones de lógica independientes del sistema Android o del hardware deben disponer de pruebas automáticas cuando resulte adecuado.
+- Los métodos estáticos deben identificarse en la notación de diseño mediante `--x`.
 - Los permisos Bluetooth y de red deben declararse explícitamente en `AndroidManifest.xml`.
