@@ -462,9 +462,13 @@ src/web/
 ├── css/
 |   └── estilos.css
 |
-└── js/
-    ├── LogicaFake.js
-    └── app.js
+├── js/
+|   ├── LogicaFake.js
+|   └── app.js
+|
+└── tests/
+    ├── LogicaFakeTest.html
+    └── LogicaFakeTest.js
 ```
 
 `index.html`:
@@ -494,6 +498,57 @@ control de la interfaz
 +
 representación de los datos
 ```
+
+`LogicaFakeTest.html`:
+
+```text
+interfaz utilizada para ejecutar
+y visualizar los tests de la lógica fake
+```
+
+`LogicaFakeTest.js`:
+
+```text
+pruebas automáticas de LogicaFake
+```
+
+---
+
+### Pruebas del componente
+
+La lógica fake dispone de pruebas automáticas independientes de la interfaz principal.
+
+Los tests comprueban:
+
+```text
+leer una medición correcta
+
+utilizar la ruta /api/medicion
+
+aceptar una respuesta null
+
+detectar errores HTTP
+```
+
+Durante las pruebas se sustituye temporalmente `fetch()` por respuestas controladas.
+
+Esto permite comprobar `LogicaFake` sin depender de:
+
+```text
+servidor REST real
+base de datos
+conexión a Internet
+```
+
+Al finalizar las pruebas se restaura el comportamiento normal de `fetch()`.
+
+Los tests se encuentran en:
+
+```text
+src/web/tests/
+```
+
+y no se ejecutan al utilizar normalmente la interfaz web.
 
 ---
 
@@ -581,3 +636,4 @@ no se muestra durante el Sprint 0.
 - Las funciones JavaScript deben incluir su diseño lógico y una breve descripción.
 - El código debe mantenerse sencillo, legible y autoexplicativo.
 - La distribución visual debe mantenerse sencilla para facilitar la demostración del Sprint 0.
+- La lógica fake debe disponer de pruebas automáticas reproducibles que puedan ejecutarse independientemente de la interfaz principal.
