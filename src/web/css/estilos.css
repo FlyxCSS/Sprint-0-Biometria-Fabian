@@ -1,42 +1,348 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 0;
+/*
+------------------------------------------------------------
+Fichero: estilos.css
+Descripción: Estilos visuales de la interfaz web.
+Fecha: 2026-10-04
+Autor: Fabián Useche
+Aportación: presentación visual de la web del Sprint 0.
+Copyright: material académico y modificaciones del autor.
+------------------------------------------------------------
+*/
+
+
+* {
+    box-sizing: border-box;
 }
+
+
+body {
+    margin: 0;
+
+    min-height: 100vh;
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    background-color: #eef6f8;
+
+    color: #24343a;
+}
+
+
+/* Contenedor principal */
 
 .contenedor {
-    max-width: 600px;
-    margin: 80px auto;
-    padding: 20px;
+    width: min(
+        800px,
+        calc(100% - 40px)
+    );
+
+    margin: 0 auto;
+
+    padding: 70px 0;
 }
 
-h1 {
+
+/* Cabecera */
+
+.cabecera {
+    margin-bottom: 30px;
+
     text-align: center;
 }
 
+
+.cabecera h1 {
+    margin: 0;
+
+    color: #176b7a;
+
+    font-size: 36px;
+}
+
+
+.cabecera p {
+    margin: 8px 0 0;
+
+    color: #70858c;
+}
+
+
+/* Tarjeta principal */
+
 .tarjeta {
     background-color: white;
-    padding: 25px;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    border-radius: 16px;
+
+    padding: 32px 40px;
+
+    border: 1px solid #d8e7ea;
+
+    box-shadow:
+        0 8px 25px
+        rgba(41, 85, 94, 0.10);
+
+    max-width: 720px;
+
+    margin: 0 auto;
 }
+
+
+.tarjeta h2 {
+    margin: 0 0 30px;
+
+    color: #24343a;
+
+    font-size: 22px;
+
+    text-align: center;
+}
+
+
+/* Contenido principal de la medición */
+
+.contenido-medicion {
+    display: grid;
+
+    grid-template-columns:
+        1fr
+        1px
+        1fr;
+
+    align-items: center;
+
+    column-gap: 25px;
+
+    width: 100%;
+
+    margin: 0 auto;
+}
+
+
+/* Línea vertical centrada */
+
+.contenido-medicion::before {
+    content: "";
+
+    grid-column: 2;
+
+    grid-row: 1;
+
+    width: 1px;
+
+    height: 170px;
+
+    background-color: #d8dfe1;
+
+    justify-self: center;
+}
+
+
+/* Datos de la izquierda */
+
+.datos {
+    grid-column: 1;
+
+    grid-row: 1;
+
+    width: 100%;
+}
+
 
 .dato {
-    margin: 15px 0;
-    font-size: 18px;
+    display: flex;
+
+    align-items: center;
+
+    margin: 12px 0;
 }
 
+
 .etiqueta {
+    width: 75px;
+
+    color: #71858b;
+
+    font-size: 15px;
+}
+
+
+/* Valores con aspecto de campo bloqueado */
+
+.valor {
+    display: inline-block;
+
+    min-width: 170px;
+
+    padding: 9px 12px;
+
+    background-color: #f1f3f4;
+
+    border: 1px solid #d8dfe1;
+
+    border-radius: 8px;
+
+    color: #24343a;
+
+    font-size: 17px;
+
     font-weight: bold;
 }
 
-button {
-    margin-top: 20px;
-    padding: 10px 20px;
-    cursor: pointer;
+
+/* El valor principal tiene el mismo tamaño que los demás */
+
+.valor-principal {
+    color: #24343a;
+
+    font-size: 17px;
 }
 
+
+/* Zona derecha */
+
+.controles {
+    grid-column: 3;
+
+    grid-row: 1;
+
+    min-width: 0;
+
+    padding-left: 0;
+
+    border-left: none;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+}
+
+
+/* Botón */
+
+button {
+    width: 160px;
+
+    padding: 12px 18px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background-color: #176b7a;
+
+    color: white;
+
+    font-size: 15px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s,
+        transform 0.2s;
+}
+
+
+button:hover {
+    background-color: #125866;
+
+    transform: translateY(-1px);
+}
+
+
+button:disabled {
+    background-color: #9bb6bb;
+
+    cursor: default;
+
+    transform: none;
+}
+
+
+/* Texto de última actualización */
+
+#ultimaActualizacion {
+    margin-top: 12px;
+
+    color: #819398;
+
+    font-size: 12px;
+
+    text-align: center;
+}
+
+
+/* Estado de la petición */
+
 #estado {
-    margin-top: 15px;
+    min-height: 20px;
+
+    margin-top: 20px;
+
+    color: #71858b;
+
+    font-size: 14px;
+
+    text-align: center;
+}
+
+
+/* Adaptación para móvil */
+
+@media (max-width: 650px) {
+
+    .contenedor {
+        padding: 35px 0;
+    }
+
+
+    .tarjeta {
+        padding: 25px;
+    }
+
+
+    .contenido-medicion {
+        display: flex;
+
+        flex-direction: column;
+
+        gap: 25px;
+    }
+
+
+    .contenido-medicion::before {
+        display: none;
+    }
+
+
+    .datos {
+        width: 100%;
+    }
+
+
+    .controles {
+        width: 100%;
+
+        padding-top: 25px;
+
+        border-top: 1px solid #d8dfe1;
+    }
+
+
+    .dato {
+        justify-content: center;
+    }
+
+
+    #ultimaActualizacion {
+        text-align: center;
+    }
 }

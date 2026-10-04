@@ -1,54 +1,203 @@
 /*
 ------------------------------------------------------------
-cargarMedicion() --> void
-
-PRE:
-- El servidor REST está disponible.
-
-PROCESO:
-- Realizar GET a /api/medicion.
-- Recibir la última medición en formato JSON.
-- Separar fecha y hora.
-- Mostrar los datos en la interfaz.
-
-POST:
-- La última medición aparece en pantalla.
-- Si ocurre un error, se informa al usuario.
+Fichero: app.js
+Descripción: Control de la interfaz gráfica de la web.
+Fecha: 2026-10-04
+Autor: Fabián Useche
+Aportación: comportamiento de la interfaz web del Sprint 0.
+Copyright: material académico y modificaciones del autor.
 ------------------------------------------------------------
 */
+
+
+let momentoUltimaActualizacion =
+    null;
+
+
+// ------------------------------------------------------------
+// mostrarMedicion(medicion)
+//
+// Muestra en la interfaz los datos de una medición recibida
+// desde la lógica fake.
+// ------------------------------------------------------------
+function mostrarMedicion(
+    medicion
+) {
+
+    if (medicion === null) {
+
+        document.getElementById(
+            "tipo"
+        ).textContent = "-";
+
+
+        document.getElementById(
+            "valor"
+        ).textContent = "-";
+
+
+        document.getElementById(
+            "fecha"
+        ).textContent = "-";
+
+
+        document.getElementById(
+            "hora"
+        ).textContent = "-";
+
+
+        return;
+    }
+
+
+    document.getElementById(
+        "tipo"
+    ).textContent =
+        medicion.tipo;
+
+
+    document.getElementById(
+        "valor"
+    ).textContent =
+        medicion.valor;
+
+
+    const fechaHora =
+        medicion.fecha.split(
+            " "
+        );
+
+
+    document.getElementById(
+        "fecha"
+    ).textContent =
+        fechaHora[0] ?? "-";
+
+
+    document.getElementById(
+        "hora"
+    ).textContent =
+        fechaHora[1] ?? "-";
+}
+
+
+// ------------------------------------------------------------
+// actualizarTextoUltimaActualizacion()
+//
+// Calcula cuánto tiempo ha pasado desde la última actualización
+// correcta de la interfaz.
+// ------------------------------------------------------------
+function actualizarTextoUltimaActualizacion() {
+
+    if (
+        momentoUltimaActualizacion === null
+    ) {
+
+        return;
+    }
+
+
+    const ahora =
+        new Date();
+
+
+    const diferenciaMilisegundos =
+        ahora
+        - momentoUltimaActualizacion;
+
+
+    const minutos =
+        Math.floor(
+            diferenciaMilisegundos
+            / 60000
+        );
+
+
+    const hora =
+        momentoUltimaActualizacion
+            .toLocaleTimeString(
+                "es-ES",
+                {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit"
+                }
+            );
+
+
+    let texto;
+
+
+    if (minutos < 1) {
+
+        texto =
+            "Actualizado ahora · "
+            + hora;
+
+    } else if (minutos === 1) {
+
+        texto =
+            "Actualizado hace 1 minuto · "
+            + hora;
+
+    } else {
+
+        texto =
+            "Actualizado hace "
+            + minutos
+            + " minutos · "
+            + hora;
+    }
+
+
+    document.getElementById(
+        "ultimaActualizacion"
+    ).textContent =
+        texto;
+}
+
+
+// ------------------------------------------------------------
+// cargarMedicion()
+//
+// Solicita la última medición a la lógica fake y actualiza
+// los datos mostrados en la interfaz.
+// ------------------------------------------------------------
 async function cargarMedicion() {
 
     const estado =
-        document.getElementById("estado");
+        document.getElementById(
+            "estado"
+        );
+
+
+    const boton =
+        document.getElementById(
+            "botonActualizar"
+        );
+
 
     estado.textContent =
-        "Cargando...";
+        "Actualizando...";
+
+
+    boton.disabled =
+        true;
+
 
     try {
 
-        const respuesta =
-            await fetch("/api/medicion");
-
-
-        if (!respuesta.ok) {
-
-            throw new Error(
-                "Error HTTP: "
-                + respuesta.status
-            );
-        }
-
-
         const medicion =
-            await respuesta.json();
+            await logicaFake
+                .leerMedicion();
+
+
+        mostrarMedicion(
+            medicion
+        );
 
 
         if (medicion === null) {
-
-            document.getElementById("tipo").textContent = "-";
-            document.getElementById("valor").textContent = "-";
-            document.getElementById("fecha").textContent = "-";
-            document.getElementById("hora").textContent = "-";
 
             estado.textContent =
                 "No existen mediciones almacenadas.";
@@ -57,60 +206,48 @@ async function cargarMedicion() {
         }
 
 
-        document.getElementById("tipo")
-            .textContent =
-            medicion.tipo;
+        momentoUltimaActualizacion =
+            new Date();
 
 
-        document.getElementById("valor")
-            .textContent =
-            medicion.valor;
-
-
-        const fechaHora =
-            medicion.fecha.split(" ");
-
-
-        document.getElementById("fecha")
-            .textContent =
-            fechaHora[0] ?? "-";
-
-
-        document.getElementById("hora")
-            .textContent =
-            fechaHora[1] ?? "-";
+        actualizarTextoUltimaActualizacion();
 
 
         estado.textContent =
-            "Medición actualizada correctamente.";
+            "";
 
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            error
+        );
+
 
         estado.textContent =
             "No se pudo recuperar la medición.";
+
+
+    } finally {
+
+        boton.disabled =
+            false;
     }
 }
 
 
-/*
-------------------------------------------------------------
-inicializarInterfaz() --> void
-
-PRE:
-- El documento HTML ha terminado de cargar.
-
-POST:
-- Configura el botón Actualizar.
-- Carga automáticamente la última medición.
-------------------------------------------------------------
-*/
+// ------------------------------------------------------------
+// inicializarInterfaz()
+//
+// Configura los eventos de la interfaz y realiza la primera
+// lectura de la última medición.
+// ------------------------------------------------------------
 function inicializarInterfaz() {
 
     const botonActualizar =
-        document.getElementById("botonActualizar");
+        document.getElementById(
+            "botonActualizar"
+        );
 
 
     botonActualizar.addEventListener(
@@ -120,6 +257,18 @@ function inicializarInterfaz() {
 
 
     cargarMedicion();
+
+
+    /*
+     * Actualiza cada minuto únicamente el texto que indica
+     * cuánto tiempo ha pasado desde la última actualización.
+     *
+     * No realiza nuevas peticiones al servidor.
+     */
+    setInterval(
+        actualizarTextoUltimaActualizacion,
+        60000
+    );
 }
 
 
