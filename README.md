@@ -233,6 +233,15 @@ Sprint 0-Biometria/
 ├── .gitattributes
 |
 ├── doc/
+|   ├── prompts/
+|   |   ├── android_prompt.md
+|   |   ├── database_prompt.md
+|   |   ├── logica_prompt.md
+|   |   ├── microprocesador_prompt.md
+|   |   ├── rest_prompt.md
+|   |   ├── ux_prompt.md
+|   |   └── web_prompt.md
+|   |
 |   ├── android_design.md
 |   ├── database_design.md
 |   ├── logica_design.md
@@ -304,6 +313,105 @@ Diseño del Componente
 Aclaraciones del Diseño
 
 Reglas Generales
+```
+
+---
+
+## Uso de Inteligencia Artificial
+
+Durante el desarrollo del Sprint 0 se ha utilizado Inteligencia Artificial siguiendo un proceso basado en diseño previo y especificaciones.
+
+Para cada componente se ha seguido el flujo:
+
+```text
+Diseño previo
+    |
+    v
+Prompt detallado
+    |
+    v
+Generación o adaptación mediante IA
+    |
+    v
+Revisión manual
+    |
+    v
+Tests
+    |
+    v
+Corrección y validación
+```
+
+La IA se ha utilizado como herramienta de apoyo para generar, revisar y adaptar código, pero las decisiones sobre arquitectura, requisitos y aceptación final de los resultados han sido revisadas manualmente.
+
+Los diseños utilizados como especificación se encuentran en:
+
+```text
+doc/
+```
+
+Los prompts utilizados para solicitar a la IA la generación o adaptación de los componentes se encuentran en:
+
+```text
+doc/prompts/
+```
+
+Actualmente se incluyen prompts para:
+
+```text
+base de datos
+
+lógica de negocio
+
+servidor REST
+
+microprocesador
+
+Android y lógica fake móvil
+
+lógica fake del navegador
+
+UX web
+```
+
+Los prompts especifican:
+
+- responsabilidades de cada componente;
+- restricciones de arquitectura;
+- entradas y salidas;
+- comentarios y notación;
+- tests automáticos;
+- funcionalidades que no deben añadirse.
+
+Después de generar o adaptar cada componente se ha comprobado que la implementación coincidiera con el diseño y se han realizado correcciones cuando ha sido necesario.
+
+Entre las revisiones realizadas durante el Sprint se encuentran:
+
+- separación entre REST y lógica de negocio;
+- separación entre lógica fake y comunicación HTTP;
+- codificación de Major y Minor;
+- control de mediciones BLE duplicadas;
+- conversión de ppb a ppm;
+- generación correcta de fecha y hora;
+- pruebas automáticas;
+- correspondencia entre documentación e implementación.
+
+La relación utilizada durante el desarrollo puede resumirse como:
+
+```text
+Diseño
+   |
+   v
+Prompt
+   |
+   v
+Implementación
+   |
+   v
+Tests
+   |
+   v
+Revisión
 ```
 
 ---
