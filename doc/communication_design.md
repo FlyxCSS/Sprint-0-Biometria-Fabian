@@ -336,7 +336,7 @@ Las pruebas del REST deben comprobar tanto el código HTTP como el contenido JSO
 ## Reglas Generales
 
 - Lenguaje de programación: PHP.
-- La implementación debe mantenerse en `src/rest/` y corresponder con este diseño.
+- La implementación debe mantenerse en `src/communication/` y corresponder con este diseño.
 - Cada fichero debe incluir una cabecera con nombre, descripción, fecha, autor, aportación y copyright.
 - Cada función debe incluir su diseño lógico y una breve descripción dentro de un bloque delimitado por líneas discontinuas.
 - El código debe ser sencillo, legible y autoexplicativo.

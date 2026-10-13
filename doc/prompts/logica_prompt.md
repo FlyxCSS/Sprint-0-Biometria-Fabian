@@ -1,67 +1,156 @@
-# Prompt para generar la lógica de negocio
+# Prompt para generar Business Logic
 
-Quiero que generes únicamente la lógica de negocio real del backend para mi proyecto de Biometría y Medio Ambiente.
+Quiero que generes o adaptes únicamente la lógica de negocio del backend para mi Sprint 0 del proyecto de Biometría y Medio Ambiente.
 
-## Contexto
-Existe una tabla `Mediciones` con `id`, `fecha`, `tipo` y `valor`.
+## Arquitectura
 
-La lógica de negocio será la única parte que acceda directamente a la base de datos.
+La arquitectura del backend es:
 
-## Tecnología
-PHP + PDO + MySQL.
-
-## Clase
-Crea `LogicaNegocio` y recibe la conexión PDO por constructor.
-
-La clase no debe conocer rutas HTTP, GET, POST, códigos HTTP, Android ni la web.
-
-## Operaciones
 ```text
-tipo: Text, valor: R --> guardarMedicion() --> Medicion
+Communication
+      ↓
+Business Logic
+      ↓
+Database
+```
+
+Este prompt afecta únicamente a:
+
+```text
+doc/business_logic_design.md
+src/business_logic/
+```
+
+## Objetivo
+
+Implementar en PHP la clase:
+
+```text
+LogicaNegocio
+```
+
+con las operaciones:
+
+```text
+guardarMedicion()
+leerMedicion()
+```
+
+## Regla principal
+
+La lógica de negocio debe ser 100 % independiente de la comunicación.
+
+No debe conocer:
+
+```text
+HTTP
+GET
+POST
+rutas
+códigos 200/201/400/404/500
+cabeceras HTTP
+sockets
+JSON de transporte
+```
+
+Puede utilizar PDO y consultas SQL como detalle de implementación para acceder a la base de datos.
+
+## Entidad de dominio
+
+La medición se representa como:
+
+```text
+Medicion = (
+    id: N,
+    fecha: Text,
+    tipo: Text,
+    valor: R
+)
+```
+
+La estructura debe coincidir con:
+
+```text
+doc/database_design.md
+```
+
+## guardarMedicion
+
+Firma lógica:
+
+```text
+tipo: Text, valor: R
+    --> guardarMedicion()
+    --> Medicion
+```
+
+Debe:
+
+1. comprobar que `tipo` no está vacío;
+2. comprobar que `valor` es numérico;
+3. generar la fecha en el backend;
+4. utilizar la zona horaria `Europe/Madrid`;
+5. usar el formato `Y-m-d H:i:s`;
+6. insertar la medición mediante consulta preparada;
+7. devolver la medición creada con `id`, `fecha`, `tipo` y `valor`.
+
+## leerMedicion
+
+Firma lógica:
+
+```text
 leerMedicion() --> Medicion | null
 ```
 
-### guardarMedicion()
-Debe:
-1. recibir `tipo` y `valor`;
-2. hacer `trim` del tipo;
-3. rechazar tipo vacío;
-4. comprobar que el valor sea numérico;
-5. convertirlo a float;
-6. generar fecha/hora en backend;
-7. usar zona `Europe/Madrid`;
-8. hacer INSERT preparado;
-9. recuperar el id;
-10. devolver `id`, `fecha`, `tipo`, `valor`.
+Debe recuperar únicamente la última medición almacenada.
 
-### leerMedicion()
-Debe recuperar únicamente la última medición con:
+Si no existen mediciones debe devolver:
 
-```sql
-ORDER BY id DESC
-LIMIT 1
-```
-
-Si no existe ninguna, devuelve `null`.
-
-## Separación
-No incluyas rutas REST, JSON HTTP, callbacks, Bluetooth ni interfaz.
-
-## Comentarios
-Cada función importante debe llevar cabecera con diseño lógico y breve descripción siguiendo la notación de la asignatura.
-
-## Tests automáticos
-Genera tests para:
-- guardar una medición válida;
-- rechazar tipo vacío;
-- rechazar valor no numérico;
-- recuperar la última medición;
-- devolver `null` sin mediciones.
-
-Los tests deben ser reproducibles y ejecutables sin arrancar toda la aplicación.
-
-Genera:
 ```text
-src/logica/LogicaNegocio.php
-src/logica/LogicaNegocioTest.php
+null
 ```
+
+## Archivos
+
+Genera o adapta:
+
+```text
+src/business_logic/LogicaNegocio.php
+src/business_logic/LogicaNegocioTest.php
+```
+
+## Tests
+
+Los tests deben comprobar al menos:
+
+```text
+guardar una medición válida
+rechazar un tipo vacío
+rechazar un valor no numérico
+recuperar la última medición
+devolver null si no existen mediciones
+```
+
+Deben poder ejecutarse manualmente con:
+
+```bash
+php LogicaNegocioTest.php
+```
+
+## Comentarios y diseño lógico
+
+Cada función o método clave debe incluir:
+
+- diseño lógico;
+- breve descripción;
+- bloque delimitado por líneas discontinuas.
+
+El código debe ser sencillo, claro y fácil de explicar.
+
+## Restricciones
+
+No mezcles HTTP con la lógica de negocio.
+
+No accedas directamente desde esta clase a Android o a la GUI.
+
+No cambies la estructura de la tabla `Mediciones`.

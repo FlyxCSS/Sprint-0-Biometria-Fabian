@@ -1,75 +1,192 @@
-# Prompt para generar Android y la lógica fake móvil
+# Prompt para generar Android
 
-Quiero que generes o adaptes la parte Android del proyecto.
+Quiero que generes o adaptes únicamente el componente Android del Sprint 0 del proyecto de Biometría y Medio Ambiente.
 
-## Tecnología
-Android Studio + Java + BLE + iBeacon + HttpURLConnection.
+## Arquitectura
+
+El flujo es:
+
+```text
+SparkFun
+   ↓ BLE / iBeacon
+Android
+   ↓
+Communication
+   ↓
+Business Logic
+   ↓
+Database
+```
+
+El código Android se encuentra en:
+
+```text
+src/android/
+```
+
+Debe desarrollarse en Java con Android Studio.
 
 ## Objetivo
-La app debe:
-1. detectar la SparkFun por BLE;
-2. interpretar iBeacon;
-3. extraer UUID, Major, Minor y TxPower;
-4. obtener tipo y contador desde Major;
-5. tratar Minor como valor en ppb;
-6. evitar duplicados;
-7. convertir ppb a ppm si se configura;
-8. enviar una nueva medición al servidor mediante lógica fake.
+
+La aplicación debe:
+
+```text
+escanear dispositivos BLE
+mostrar todos los dispositivos cuando se solicite
+buscar específicamente Fabian_GTI
+interpretar la trama iBeacon
+extraer Major y Minor
+interpretar tipo y contador
+evitar mediciones duplicadas
+convertir ppb a ppm cuando corresponda
+enviar la medición al backend
+```
+
+## Separación de responsabilidades
+
+Mantén:
+
+```text
+MainActivity
+    ↓
+TramaIBeacon / Utilidades
+    ↓
+LogicaFake
+    ↓
+PeticionarioREST
+```
+
+`MainActivity` coordina BLE y la interacción.
+
+`TramaIBeacon` interpreta la trama.
+
+`Utilidades` realiza conversiones.
+
+`LogicaFake` presenta operaciones de dominio.
+
+`PeticionarioREST` encapsula HTTP.
 
 ## Beacon
-Nombre: `Fabian_GTI`.
 
-Debe existir:
-- escaneo general para depuración;
-- escaneo filtrado por `Fabian_GTI`.
+Nombre:
 
-## Major
+```text
+Fabian_GTI
+```
+
+Major:
+
 ```text
 byte alto -> tipo
 byte bajo -> contador
 ```
+
+Tipos:
+
+```text
+O3 = 11
+TEMPERATURA = 12
+```
+
+Extracción:
 
 ```text
 tipo = (major >> 8) & 0xFF
 contador = major & 0xFF
 ```
 
-Tipos:
+Minor contiene el valor en ppb.
+
+Ejemplo:
+
 ```text
-11 -> O3
-12 -> TEMPERATURA
+Minor = 1234
 ```
 
-## Minor
-Minor contiene ppb.
+## Conversión
 
-Crea:
+Debe existir una configuración:
+
 ```text
 ENVIAR_VALOR_EN_PPM
 ```
 
-Si `true`: 1234 -> 1.234.
-Si `false`: 1234 -> 1234.
-
-## Anti-duplicados
-Solo enviar si:
+Si es `true`:
 
 ```text
-contador != ultimoContadorEnviado
+1234 ppb -> 1.234 ppm
 ```
 
-## Clases
-- `MainActivity`: permisos, escaneo y coordinación.
-- `TramaIBeacon`: extracción de UUID/Major/Minor/TxPower.
-- `Utilidades`: conversiones.
-- `LogicaFake`: `guardarMedicion(tipo, valor)`.
-- `PeticionarioREST`: cliente HTTP genérico.
+Si es `false`:
 
-## REST
-POST:
-`https://fuseriv.upv.edu.es/api/medicion`
+```text
+1234
+```
 
-JSON:
+se envía sin convertir.
+
+## Anti-duplicados
+
+La SparkFun repite el mismo advertising varias veces.
+
+Android debe conservar:
+
+```text
+ultimoContadorEnviado
+```
+
+y enviar al servidor únicamente cuando el contador cambie.
+
+## LogicaFake
+
+La operación lógica debe mantener la misma interfaz de dominio que el backend:
+
+```text
+tipo: Text, valor: R
+    --> guardarMedicion()
+    --> Medicion
+```
+
+donde:
+
+```text
+Medicion = (
+    id: N,
+    fecha: Text,
+    tipo: Text,
+    valor: R
+)
+```
+
+Como Android no debe bloquear el hilo principal, la implementación puede entregar la `Medicion` mediante callback asíncrono.
+
+Debe existir una clase:
+
+```text
+Medicion.java
+```
+
+con:
+
+```text
+id
+fecha
+tipo
+valor
+```
+
+## PeticionarioREST
+
+Debe realizar la petición HTTP fuera del hilo principal.
+
+Usará:
+
+```text
+POST https://fuseriv.upv.edu.es/api/medicion
+```
+
+El JSON enviado será:
+
 ```json
 {
   "tipo": "O3",
@@ -77,16 +194,54 @@ JSON:
 }
 ```
 
-`MainActivity` no debe construir HTTP directamente.
+La respuesta correcta debe poder transformarse en un objeto `Medicion`.
 
-## Logs
-Mostrar nombre, UUID, Major, tipo, contador, Minor, TxPower, si se envía o ignora y respuesta HTTP.
+## Logcat
+
+Utiliza etiquetas claras:
+
+```text
+FABI_BLE
+FABI_LOGICA
+FABI_REST
+```
+
+Ejemplos de mensajes:
+
+```text
+[SCAN]
+[IBEACON]
+[MEDICION]
+[SERVIDOR]
+[HTTP]
+```
 
 ## Tests
-Crear tests para:
-- 1234 ppb -> 1.234 ppm;
-- `0x0B 0x05` -> 2821;
-- bytes -> hex;
-- bytes ASCII -> texto.
 
-Los métodos estáticos deben reflejarse con `--x` en la notación de diseño.
+Mantén tests locales de `Utilidades` para:
+
+```text
+ppbAPpm
+bytesToIntOK
+bytesToHexString
+bytesToString
+```
+
+Deben poder ejecutarse desde Android Studio y producir:
+
+```text
+4 tests passed
+BUILD SUCCESSFUL
+```
+
+## Restricciones
+
+No accedas directamente a MySQL desde Android.
+
+No hagas HTTP directamente desde `MainActivity`.
+
+No mezcles interpretación BLE con `PeticionarioREST`.
+
+No añadas clases innecesarias.
+
+Mantén el código sencillo y fácil de defender.

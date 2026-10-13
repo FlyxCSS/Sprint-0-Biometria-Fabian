@@ -2,11 +2,13 @@ package com.example.fuseriv.aplicacionandroidble;
 
 import android.util.Log;
 
+import org.json.JSONObject;
+
 
 // --------------------------------------------------------------
 // Fichero: LogicaFake.java
 // Descripción: Lógica fake del cliente Android.
-// Fecha: 2026-10-03
+// Fecha: 2026-10-13
 // Autor: Fabián Useche
 // Aportación: implementación de guardarMedicion() para comunicar
 //             Android con el servidor REST.
@@ -15,8 +17,9 @@ import android.util.Log;
 
 public class LogicaFake {
 
+
     private static final String ETIQUETA_LOG =
-            ">>>>";
+            "FABI_LOGICA";
 
 
     private static final String URL_MEDICION =
@@ -24,78 +27,190 @@ public class LogicaFake {
 
 
     // ------------------------------------------------------------
-    // tipo: Text, valor: R --> guardarMedicion()
+    // Interfaz utilizada para devolver de forma asíncrona
+    // el resultado de guardarMedicion().
+    // ------------------------------------------------------------
+    public interface RespuestaGuardarMedicion {
+
+        void alGuardar(
+                Medicion medicion
+        );
+
+        void alFallar(
+                String error
+        );
+    }
+
+
+    // ------------------------------------------------------------
+    // tipo: Text, valor: R
+    //      --> guardarMedicion()
+    //      --> Medicion
     //
-    // Representa en el cliente la operación guardarMedicion().
-    // Convierte los datos a JSON y solicita al servidor REST
-    // que almacene la medición mediante POST /medicion.
+    // Representa en Android la operación guardarMedicion().
+    // La Medicion se entrega de forma asíncrona mediante callback.
     // ------------------------------------------------------------
     public void guardarMedicion(
             String tipo,
-            double valor
+            double valor,
+            RespuestaGuardarMedicion respuesta
     ) {
 
-        String cuerpoJSON =
-                "{"
-                        + "\"tipo\":\""
-                        + tipo
-                        + "\","
-                        + "\"valor\":"
-                        + valor
-                        + "}";
+        try {
+
+            JSONObject json =
+                    new JSONObject();
 
 
-        Log.d(
-                ETIQUETA_LOG,
-                "LOGICA FAKE - guardarMedicion()"
-        );
+            json.put(
+                    "tipo",
+                    tipo
+            );
 
 
-        Log.d(
-                ETIQUETA_LOG,
-                "JSON = "
-                        + cuerpoJSON
-        );
+            json.put(
+                    "valor",
+                    valor
+            );
 
 
-        PeticionarioREST peticionario =
-                new PeticionarioREST();
+            Log.d(
+                    ETIQUETA_LOG,
+                    "[GUARDAR] Enviando medicion"
+            );
 
 
-        peticionario.hacerPeticionREST(
-                "POST",
-                URL_MEDICION,
-                cuerpoJSON,
-
-                new PeticionarioREST.RespuestaREST() {
-
-                    @Override
-                    public void callback(
-                            int codigo,
-                            String cuerpo
-                    ) {
-
-                        Log.d(
-                                ETIQUETA_LOG,
-                                "RESPUESTA REST"
-                        );
+            Log.d(
+                    ETIQUETA_LOG,
+                    "[GUARDAR] Tipo = "
+                            + tipo
+                            + " | Valor = "
+                            + valor
+            );
 
 
-                        Log.d(
-                                ETIQUETA_LOG,
-                                "Codigo HTTP = "
-                                        + codigo
-                        );
+            PeticionarioREST peticionarioREST =
+                    new PeticionarioREST();
 
 
-                        Log.d(
-                                ETIQUETA_LOG,
-                                "Cuerpo = "
-                                        + cuerpo
-                        );
+            peticionarioREST.hacerPeticionREST(
+                    "POST",
+                    URL_MEDICION,
+                    json.toString(),
+
+                    new PeticionarioREST.RespuestaREST() {
+
+                        @Override
+                        public void callback(
+                                int codigo,
+                                String cuerpo
+                        ) {
+
+                            try {
+
+                                if (
+                                        codigo >= 200
+                                                &&
+                                                codigo < 300
+                                ) {
+
+                                    JSONObject respuestaJSON =
+                                            new JSONObject(
+                                                    cuerpo
+                                            );
+
+
+                                    Medicion medicion =
+                                            new Medicion(
+
+                                                    respuestaJSON.getInt(
+                                                            "id"
+                                                    ),
+
+                                                    respuestaJSON.getString(
+                                                            "fecha"
+                                                    ),
+
+                                                    respuestaJSON.getString(
+                                                            "tipo"
+                                                    ),
+
+                                                    respuestaJSON.getDouble(
+                                                            "valor"
+                                                    )
+                                            );
+
+
+                                    Log.d(
+                                            ETIQUETA_LOG,
+                                            "[GUARDAR] Medicion almacenada correctamente"
+                                    );
+
+
+                                    Log.d(
+                                            ETIQUETA_LOG,
+                                            "[GUARDAR] ID = "
+                                                    + medicion.getId()
+                                                    + " | Tipo = "
+                                                    + medicion.getTipo()
+                                                    + " | Valor = "
+                                                    + medicion.getValor()
+                                    );
+
+
+                                    respuesta.alGuardar(
+                                            medicion
+                                    );
+
+                                } else {
+
+                                    Log.d(
+                                            ETIQUETA_LOG,
+                                            "[ERROR] HTTP "
+                                                    + codigo
+                                                    + " | "
+                                                    + cuerpo
+                                    );
+
+
+                                    respuesta.alFallar(
+                                            "HTTP "
+                                                    + codigo
+                                                    + ": "
+                                                    + cuerpo
+                                    );
+                                }
+
+                            } catch (Exception e) {
+
+                                Log.d(
+                                        ETIQUETA_LOG,
+                                        "[ERROR] No se pudo interpretar la respuesta: "
+                                                + e.getMessage()
+                                );
+
+
+                                respuesta.alFallar(
+                                        e.getMessage()
+                                );
+                            }
+                        }
                     }
-                }
-        );
+            );
+
+        } catch (Exception e) {
+
+            Log.d(
+                    ETIQUETA_LOG,
+                    "[ERROR] No se pudo preparar la medicion: "
+                            + e.getMessage()
+            );
+
+
+            respuesta.alFallar(
+                    e.getMessage()
+            );
+        }
 
     } // guardarMedicion()
 

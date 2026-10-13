@@ -1,105 +1,123 @@
-# Prompt para generar la UX del navegador
+# Prompt para generar la UX / GUI Web
 
-Quiero que generes la interfaz web del proyecto usando la lógica fake existente.
+Quiero que generes o adaptes únicamente la interfaz web del Sprint 0.
 
-## Tecnología
-- HTML: estructura
-- CSS: presentación
-- JavaScript: comportamiento
-- sin frameworks
+## Arquitectura
+
+La GUI debe respetar:
+
+```text
+Web
+ ↓
+Frontend Business Logic
+ ↓
+Communication
+ ↓
+Business Logic
+ ↓
+Database
+```
+
+Este prompt afecta únicamente a:
+
+```text
+doc/web_design.md
+src/web/
+```
+
+## Objetivo
+
+Crear una interfaz web sencilla con:
+
+```text
+HTML
+CSS
+JavaScript
+```
+
+que muestre la última medición almacenada.
+
+## Estructura
+
+La GUI debe mantenerse en:
+
+```text
+src/web/
+├── index.html
+├── css/
+│   └── estilos.css
+└── js/
+    └── app.js
+```
+
+La lógica de comunicación NO pertenece a esta carpeta.
+
+Se encuentra en:
+
+```text
+src/frontend_business_logic/LogicaFake.js
+```
+
+## Datos mostrados
+
+La página debe mostrar:
+
+```text
+tipo
+valor
+fecha
+hora
+momento de la última actualización
+estado de la operación
+```
+
+También debe tener un botón para actualizar manualmente la medición.
 
 ## Regla principal
-La interfaz NO debe realizar peticiones REST directamente. Debe usar `logicaFake.leerMedicion()`.
 
-## Diseño
-Título:
-```text
-Calidad del Aire
+La GUI nunca debe hacer directamente:
+
+```javascript
+fetch()
 ```
 
-Subtítulo:
+Debe solicitar la información mediante:
+
 ```text
-Monitorización ambiental
+leerMedicion()
 ```
 
-Tarjeta:
+del componente:
+
 ```text
-Última medición
+frontend_business_logic
 ```
-
-Datos:
-- Tipo
-- Valor
-- Fecha
-- Hora
-
-Controles:
-- botón `Actualizar`
-- texto de última actualización
 
 ## Comportamiento
-Al cargar:
-1. configurar botón;
-2. cargar primera medición;
-3. mostrarla.
 
-Al pulsar Actualizar:
-1. mostrar `Actualizando...`;
-2. desactivar botón;
-3. llamar `leerMedicion()`;
-4. actualizar datos;
-5. guardar momento de actualización;
-6. reactivar botón.
+`app.js` puede incluir funciones como:
 
-Sin datos:
-`No existen mediciones almacenadas.`
-
-Error:
-`No se pudo recuperar la medición.`
-
-## Fecha
-Si llega:
 ```text
-2026-10-04 14:42:10
+inicializarInterfaz()
+cargarMedicion()
+mostrarMedicion()
+actualizarTextoUltimaActualizacion()
 ```
 
-mostrar:
-```text
-Fecha: 2026-10-04
-Hora: 14:42:10
-```
+`actualizarTextoUltimaActualizacion()` solo debe cambiar el texto visual y no realizar nuevas peticiones al servidor.
 
-## Última actualización
-Ejemplos:
-- `Actualizado ahora · 14:42:10`
-- `Actualizado hace 1 minuto · 14:42:10`
-- `Actualizado hace 5 minutos · 14:42:10`
+## Diseño visual
 
-Actualizar ese texto cada minuto no debe provocar nuevos GET.
+Quiero una interfaz sencilla y fácil de entender.
 
-## Visual
-Diseño sencillo, limpio, centrado y responsive.
+No es necesario un diseño complejo.
 
-En escritorio:
-```text
-datos | controles
-```
+Debe ser adecuada para demostrar el Sprint 0 y mostrar claramente la última medición recibida.
 
-En móvil:
-```text
-datos
-----
-controles
-```
+## Restricciones
 
-## Archivos
-Genera:
-```text
-src/web/index.html
-src/web/css/estilos.css
-src/web/js/app.js
-```
+No pongas lógica de negocio en la GUI.
 
-Carga `LogicaFake.js` antes de `app.js`.
+No pongas llamadas HTTP directas en `app.js`.
 
-No añadas gráficas, mapas, usuarios, login ni funcionalidades extra.
+No dupliques `LogicaFake.js` dentro de `src/web/`.

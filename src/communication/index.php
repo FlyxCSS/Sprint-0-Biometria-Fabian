@@ -11,7 +11,7 @@
 // --------------------------------------------------------------
 
 
-require_once __DIR__ . '/../logica/LogicaNegocio.php';
+require_once __DIR__ . '/../business_logic/LogicaNegocio.php';
 
 
 header(

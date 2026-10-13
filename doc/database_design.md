@@ -185,10 +185,10 @@ Para almacenar una medición:
 Android
    |
    v
-REST
+Communication
    |
    v
-LogicaNegocio
+Business Logic
    |
    | INSERT
    v
@@ -201,10 +201,13 @@ Para recuperar la última medición:
 Web
  |
  v
-REST
+Frontend Business Logic
  |
  v
-LogicaNegocio
+Communication
+ |
+ v
+Business Logic
  |
  | SELECT
  v
@@ -256,7 +259,7 @@ Las consultas permanecen comentadas para evitar modificar accidentalmente los da
 Las pruebas automáticas del acceso a datos se realizan desde:
 
 ```text
-src/logica/LogicaNegocioTest.php
+src/business_logic/LogicaNegocioTest.php
 ```
 
 De esta forma, la base de datos permanece como componente de almacenamiento y las operaciones se prueban desde la lógica de negocio que la utiliza.

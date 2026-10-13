@@ -1,86 +1,101 @@
 # Prompt para generar la base de datos
 
-Quiero que generes únicamente la base de datos para mi proyecto de Biometría y Medio Ambiente, siguiendo el diseño previamente definido para el Sprint 0.
+Quiero que generes o adaptes únicamente el componente de base de datos de mi Sprint 0 del proyecto de Biometría y Medio Ambiente.
 
-## Contexto
-El sistema completo tiene esta arquitectura:
+## Arquitectura
 
-```text
-SparkFun Pro nRF52840 Mini
-        |
-        | BLE / iBeacon
-        v
-Aplicación Android
-        |
-        | POST /api/medicion
-        v
-Servidor REST
-        |
-        v
-Lógica de negocio
-        |
-        v
-Base de datos
-        |
-        | GET /api/medicion
-        v
-Interfaz Web
-```
-
-En esta tarea debes trabajar únicamente sobre la base de datos.
-
-## Diseño requerido
-La base de datos debe ser sencilla y contener una única tabla llamada `Mediciones`.
-
-Cada fila representa una medición almacenada por la lógica de negocio.
-
-La tabla debe contener exactamente:
-- `id`: identificador único y clave primaria.
-- `fecha`: fecha y hora de almacenamiento.
-- `tipo`: tipo de medición, por ejemplo `O3`.
-- `valor`: valor numérico.
-
-## Restricciones
-No añadas tablas ni columnas adicionales. Mantén el Sprint 0 deliberadamente simple.
-
-## Implementación esperada
-Genera un archivo SQL que:
-1. Cree `Mediciones`.
-2. Use `INT AUTO_INCREMENT PRIMARY KEY` para `id`.
-3. Use `DATETIME NOT NULL` para `fecha`.
-4. Use `VARCHAR(50) NOT NULL` para `tipo`.
-5. Use `DOUBLE NOT NULL` para `valor`.
-6. Use `CREATE TABLE IF NOT EXISTS`.
-
-Diseño de referencia:
+La arquitectura actual es:
 
 ```text
-====================================================================================
-TABLE: Mediciones
-DESCRIPTION: Almacena las mediciones recibidas y validadas por la lógica de negocio.
-
-COLUMNS:
-+ id    | INT         | NOT NULL | Auto-Increment
-+ fecha | DATETIME    | NOT NULL
-+ tipo  | VARCHAR(50) | NOT NULL
-+ valor | DOUBLE      | NOT NULL
-
-PRIMARY KEY:
-+ id
-
-FOREIGN KEYS:
-+ Ninguna
-
-CONSTRAINTS:
-+ id se genera automáticamente mediante AUTO_INCREMENT.
-+ Todos los campos son obligatorios.
-====================================================================================
+SparkFun
+   ↓
+Android
+   ↓
+Communication
+   ↓
+Business Logic
+   ↓
+Database
+   ↓
+Frontend Business Logic
+   ↓
+Web
 ```
 
-## Pruebas
-Añade consultas de prueba manual comentadas para:
-- insertar una medición;
-- leer todas;
-- leer la última con `ORDER BY id DESC LIMIT 1`.
+Este prompt afecta únicamente a:
 
-Añade comentarios breves y no generes todavía lógica de negocio, REST, Android ni web.
+```text
+doc/database_design.md
+src/database/
+```
+
+## Objetivo
+
+Crear una base de datos MySQL sencilla para almacenar mediciones ambientales.
+
+Durante el Sprint 0 se utiliza una única tabla:
+
+```text
+Mediciones
+```
+
+con esta estructura:
+
+```text
+id       INT          PRIMARY KEY AUTO_INCREMENT
+fecha    DATETIME     NOT NULL
+tipo     VARCHAR(50)  NOT NULL
+valor    DOUBLE       NOT NULL
+```
+
+## Requisitos
+
+Genera:
+
+```text
+src/database/database.sql
+```
+
+El archivo debe:
+
+- crear la tabla `Mediciones`;
+- utilizar `id` como clave primaria autoincremental;
+- almacenar la fecha y hora en `fecha`;
+- almacenar el tipo de medición en `tipo`;
+- almacenar el valor numérico en `valor`;
+- ser compatible con MySQL.
+
+No añadas tablas adicionales en el Sprint 0.
+
+## Correspondencia con el diseño
+
+El código debe corresponder con:
+
+```text
+doc/database_design.md
+```
+
+El diseño utiliza el formato:
+
+```text
+TABLE
+DESCRIPTION
+COLUMNS
+PRIMARY KEY
+FOREIGN KEYS
+CONSTRAINTS
+```
+
+No cambies los nombres de las columnas ni su significado.
+
+## Alcance
+
+No implementes PHP.
+
+No implementes REST.
+
+No implementes lógica de negocio.
+
+No implementes Android ni web.
+
+Genera únicamente el SQL necesario para la persistencia del Sprint 0.

@@ -4,7 +4,7 @@
 
 El componente `android` se ejecuta como una aplicación Java para Android.
 
-Su función en el Sprint 0 es recibir mediante Bluetooth Low Energy la medición publicada por la SparkFun, interpretar la trama iBeacon y solicitar al servidor REST que almacene la medición.
+Su función en el Sprint 0 es recibir mediante Bluetooth Low Energy la medición publicada por la SparkFun, interpretar la trama iBeacon y solicitar al backend que almacene la medición.
 
 La aplicación actúa como intermediaria entre el microprocesador y el servidor.
 
@@ -38,8 +38,16 @@ PeticionarioREST
    |
    | HTTP POST
    v
-Servidor REST
+Communication
+   |
+   v
+Business Logic
+   |
+   v
+Database
 ```
+
+---
 
 ### Tipos utilizados
 
@@ -50,6 +58,17 @@ R     = número real
 B     = booleano
 Text  = texto
 Bytes = secuencia de bytes
+```
+
+Una medición se representa lógicamente como:
+
+```text
+Medicion = (
+    id: N,
+    fecha: Text,
+    tipo: Text,
+    valor: R
+)
 ```
 
 ---
@@ -115,6 +134,10 @@ detectar nuevas mediciones
 convertir la unidad cuando sea necesario
 invocar guardarMedicion()
 ```
+
+`MainActivity` no construye peticiones HTTP ni conoce la URL del backend.
+
+La comunicación se delega en `LogicaFake` y `PeticionarioREST`.
 
 Dispone de dos modos de búsqueda:
 
@@ -251,7 +274,7 @@ se envía directamente:
 1234
 ```
 
-Esto permite cambiar fácilmente entre ppm y ppb sin modificar la comunicación BLE, la lógica fake ni el servidor REST.
+Esto permite cambiar fácilmente entre ppm y ppb sin modificar la comunicación BLE ni el backend.
 
 ---
 
@@ -330,8 +353,6 @@ Text <--
 
 Convierte una secuencia de bytes en texto.
 
-Se utiliza principalmente para mostrar el UUID recibido.
-
 #### bytesToIntOK()
 
 ```text
@@ -369,35 +390,96 @@ ppm = ppb / 1000
 
 ### LogicaFake
 
+`LogicaFake` representa en Android el proxy de la lógica de negocio del backend.
+
+Su interfaz lógica debe mantener la misma operación de dominio que el componente `business_logic`.
+
 ```text
 ---------------- LogicaFake ----------------
 |
 | url_medicion: Text
 |
-tipo: Text, valor: R --> guardarMedicion() -->
+tipo: Text, valor: R
+    --> guardarMedicion()
+    --> Medicion
 |
 ---------------------------------------------
 ```
 
 Responsabilidad:
 
-Representa en Android la operación `guardarMedicion()` de la lógica del cliente.
+Ofrecer al cliente Android la operación lógica `guardarMedicion()` y encapsular los detalles necesarios para solicitarla al backend.
+
+El flujo conceptual es:
 
 ```text
 guardarMedicion(tipo, valor)
         |
-        +--> representar los datos como JSON
+        v
+representar los datos para la comunicación
         |
         v
 PeticionarioREST
         |
         v
-POST /medicion
+POST /api/medicion
+        |
+        v
+respuesta del backend
+        |
+        v
+Medicion
 ```
 
 `LogicaFake` no accede directamente a la base de datos.
 
-Su función es ofrecer al cliente la misma operación conceptual de guardado y utilizar el API REST para solicitarla al servidor.
+La operación lógica:
+
+```text
+tipo: Text, valor: R
+    --> guardarMedicion()
+    --> Medicion
+```
+
+debe coincidir con la operación equivalente definida en:
+
+```text
+business_logic_design.md
+```
+
+#### Ejecución asíncrona en Android
+
+La comunicación HTTP no debe bloquear el hilo principal.
+
+Por ello, aunque la salida lógica de `guardarMedicion()` sea:
+
+```text
+Medicion
+```
+
+la implementación Java puede entregar dicho resultado de forma asíncrona mediante un callback.
+
+Conceptualmente:
+
+```text
+tipo + valor
+    |
+    v
+guardarMedicion()
+    |
+    v
+petición asíncrona
+    |
+    v
+respuesta
+    |
+    v
+callback(Medicion)
+```
+
+El callback es un detalle de implementación de Android y no modifica la interfaz lógica de dominio.
+
+---
 
 ### PeticionarioREST
 
@@ -422,16 +504,24 @@ resultado: B --> onPostExecute() -->
 
 Responsabilidad:
 
-Realiza peticiones HTTP al servidor REST.
+Realiza peticiones HTTP al backend.
 
-No conoce el significado de O3, ppm, ppb, Major o Minor.
+No conoce el significado de:
 
-Recibe únicamente:
+```text
+O3
+ppm
+ppb
+Major
+Minor
+```
+
+Recibe únicamente información necesaria para realizar la petición:
 
 ```text
 método HTTP
 URL
-cuerpo JSON
+cuerpo
 callback de respuesta
 ```
 
@@ -442,6 +532,56 @@ POST /api/medicion
 ```
 
 El trabajo se realiza fuera del hilo principal de Android para evitar bloquear la interfaz.
+
+---
+
+### Separación de responsabilidades en Android
+
+La aplicación mantiene separadas las responsabilidades principales:
+
+```text
+MainActivity
+    |
+    | coordina BLE y la interacción
+    v
+
+TramaIBeacon / Utilidades
+    |
+    | interpretan los datos recibidos
+    v
+
+LogicaFake
+    |
+    | presenta la operación de dominio
+    v
+
+PeticionarioREST
+    |
+    | realiza la comunicación HTTP
+    v
+
+Backend
+```
+
+`MainActivity` no debe conocer:
+
+```text
+HttpURLConnection
+cabeceras HTTP
+códigos HTTP
+construcción de peticiones
+detalles de conexión con la base de datos
+```
+
+`PeticionarioREST` no debe conocer:
+
+```text
+O3
+Major
+Minor
+contador BLE
+conversión ppb a ppm
+```
 
 ---
 
@@ -477,9 +617,27 @@ LogicaFake.guardarMedicion(
    v
 PeticionarioREST
    |
-   | POST
+   | POST /api/medicion
    v
-Servidor REST
+Communication
+   |
+   v
+Business Logic
+   |
+   v
+Database
+   |
+   v
+Medicion creada
+   |
+   v
+respuesta asíncrona
+   |
+   v
+LogicaFake
+   |
+   v
+MainActivity
 ```
 
 Android no accede directamente a la base de datos.
@@ -488,7 +646,7 @@ Android no accede directamente a la base de datos.
 
 ### Interfaz gráfica
 
-La interfaz del Sprint 0 contiene tres botones centrados en pantalla:
+La interfaz del Sprint 0 contiene tres botones principales:
 
 ```text
 Buscar todos los dispositivos BLE
@@ -503,6 +661,8 @@ El primer botón permite comprobar el funcionamiento general del escaneo.
 El segundo aplica el filtro utilizado durante el funcionamiento normal.
 
 El tercero detiene el escaneo BLE activo.
+
+La interfaz puede mostrar además la última medición recuperada o almacenada cuando dicha funcionalidad esté disponible.
 
 ---
 
@@ -530,6 +690,8 @@ bytesToString(65, 66, 67) --> "ABC"
 
 Estas pruebas se ejecutan de forma independiente a la aplicación Android y no se ejecutan durante el funcionamiento normal de la app.
 
+Las operaciones relacionadas con la comunicación asíncrona deberán mantenerse separadas de las conversiones puras para facilitar su prueba.
+
 ---
 
 ## Aclaraciones del Diseño
@@ -543,12 +705,19 @@ Estas pruebas se ejecutan de forma independiente a la aplicación Android y no s
 - `MainActivity` gestiona Bluetooth y coordina el flujo de la aplicación.
 - `TramaIBeacon` representa los datos recibidos mediante iBeacon.
 - `Utilidades` contiene operaciones auxiliares de conversión y sus métodos son estáticos.
-- `LogicaFake` representa la operación `guardarMedicion()` desde el cliente.
+- `LogicaFake` actúa como proxy de la lógica de negocio del backend.
+- `LogicaFake.guardarMedicion()` mantiene la misma interfaz lógica de dominio que `business_logic.guardarMedicion()`.
+- La salida lógica de `guardarMedicion()` es una `Medicion`.
+- Debido a que Android no debe bloquear el hilo principal, la implementación puede entregar la `Medicion` mediante un callback asíncrono.
+- El callback es un detalle tecnológico de implementación y no modifica la firma lógica de dominio.
 - `PeticionarioREST` realiza únicamente la comunicación HTTP.
-- La lógica fake no accede directamente a la base de datos.
-- El botón de escaneo general se conserva para permitir comprobar el funcionamiento de BLE y localizar dispositivos sin aplicar filtros.
-- El nombre del beacon se mantiene centralizado en `NOMBRE_BEACON` para facilitar su modificación.
+- `LogicaFake` no accede directamente a la base de datos.
+- `MainActivity` no realiza peticiones HTTP directamente.
+- El botón de escaneo general se conserva para comprobar el funcionamiento de BLE y localizar dispositivos sin aplicar filtros.
+- El nombre del beacon se mantiene centralizado en `NOMBRE_BEACON`.
 - Las pruebas automáticas de Android se encuentran separadas del código de ejecución normal.
+
+---
 
 ## Reglas Generales
 
@@ -559,7 +728,9 @@ Estas pruebas se ejecutan de forma independiente a la aplicación Android y no s
 - El código debe ser claro y autoexplicativo, evitando comentarios innecesarios.
 - La lógica de Bluetooth, interpretación de datos, lógica fake y comunicación REST deben mantenerse separadas.
 - `MainActivity` no debe construir directamente peticiones HTTP.
-- `LogicaFake` debe utilizar `PeticionarioREST` para acceder al servidor.
+- `LogicaFake` debe utilizar `PeticionarioREST` para acceder al backend.
+- `LogicaFake` debe presentar la misma operación lógica de dominio que su equivalente en `business_logic`.
+- La comunicación asíncrona debe implementarse sin bloquear el hilo principal.
 - La aplicación no debe acceder directamente a la base de datos.
 - Las funciones de lógica independientes del sistema Android o del hardware deben disponer de pruebas automáticas cuando resulte adecuado.
 - Los métodos estáticos deben identificarse en la notación de diseño mediante `--x`.
