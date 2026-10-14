@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Tests de la GUI</title></head>
+<body>
+<h1>Tests de la interfaz web</h1><pre id="resultado">Ejecutando...</pre>
+<div id="nombreMicro"></div><div id="tipo"></div><div id="valor"></div>
+<div id="fecha"></div><div id="hora"></div><div id="estado"></div>
+<div id="ultimaActualizacion"></div><button id="botonActualizar">Actualizar</button>
+<script>window.logicaFake = { leerMedicion: async () => null };</script>
+<script src="../js/app.js"></script>
+<script src="AppTest.js"></script>
+</body></html>

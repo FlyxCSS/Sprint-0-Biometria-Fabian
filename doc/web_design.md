@@ -60,6 +60,10 @@ La GUI solo depende directamente de:
 Web --> Frontend Business Logic
 ```
 
+### Pruebas de presentación
+
+La GUI dispone de pruebas aisladas en `src/web/tests/AppTest.html`, usando una lógica fake simulada para comprobar la visualización, la ausencia de mediciones y los errores sin contactar con el backend.
+
 ## Aclaraciones del Diseño
 
 - `fecha_hora` se separa en fecha y hora únicamente para mostrarla.

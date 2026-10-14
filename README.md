@@ -742,3 +742,43 @@ El autor del proyecto se encuentra indicado en:
 ```text
 author.md
 ```
+
+
+---
+
+## Guía de ejecución y pruebas (auditoría final)
+
+> **Importante:** los tests del servidor REST usan la URL desplegada y hacen un POST real.
+> Ejecútalos solo sobre un entorno de pruebas o una base de datos donde aceptes insertar una medida.
+
+| Parte | Cómo ejecutar | Qué verifica |
+|---|---|---|
+| Lógica PHP | `cd src/business_logic` y `php LogicaNegocioTest.php` | Guardado, validación, lectura y BD temporal SQLite |
+| REST PHP | `cd src/communication` y `php ServidorRestTest.php` | POST/GET sobre el servidor real; puede escribir en la BD |
+| Android | Android Studio: abrir `src/android`, ejecutar los tests de `app/src/test` | `MedicionTest`, `UtilidadesTest`, `TramaIBeaconTest` |
+| Android consola | Desde `src/android`: `gradlew.bat testDebugUnitTest` (Windows) | Pruebas unitarias locales con Gradle |
+| Proxy web | Abrir `src/frontend_business_logic/tests/LogicaFakeTest.html` en el navegador | HTTP simulado, errores, respuesta vacía |
+| Interfaz web | Abrir `src/web/tests/AppTest.html` en el navegador | Mostrar datos, ausencia, error y actualización |
+| Microprocesador | Compilar `src/microprocesador/microprocesador.ino` con Arduino IDE y Bluefruit | `static_assert` verifica la codificación de Major durante compilación |
+
+El test de lógica PHP requiere la extensión `pdo_sqlite` habilitada en el PHP de consola; el servidor desplegado utiliza MySQL.
+El test REST requiere conexión de red y no se ha ejecutado en este paquete para evitar insertar registros en producción.
+
+Si el navegador bloquea archivos locales, sirve la carpeta `src` con `python -m http.server 8000`
+y visita `http://localhost:8000/web/tests/AppTest.html` o
+`http://localhost:8000/frontend_business_logic/tests/LogicaFakeTest.html`.
+
+### Criterio de aceptación del Sprint 0
+
+1. Compilar y cargar `microprocesador.ino` en la SparkFun nRF52840 Mini.
+2. Comprobar la emisión `Fabian_GTI` de una medida ficticia de O3, `Minor=1234` ppb.
+3. Iniciar la app Android en un teléfono real con BLE, conceder permisos y buscar el beacon.
+4. Verificar en Logcat que la app obtiene Major/Minor y envía una petición POST a `/api/medicion`.
+5. Comprobar que el servidor devuelve la medición y crea una fila con fecha/hora en `Mediciones`.
+6. Abrir la web desplegada; comprobar que aparecen `Fabian_GTI`, `O3` y `1.234` ppm.
+7. Pulsar «Actualizar» y verificar que la web obtiene la última medición mediante `LogicaFake`.
+
+Los tests automáticos no sustituyen a esta prueba integrada con el hardware y servidor reales.
+Las credenciales de Plesk se configuran solo en el despliegue: el repositorio contiene marcadores `DB_HOST`, etc.
+El ZIP de entrega excluye deliberadamente `.git/`, archivos locales y salidas de compilación.
+Conserva la carpeta `.git/` de tu proyecto original si deseas mantener su historial y ramas.
