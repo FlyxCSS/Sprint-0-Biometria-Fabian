@@ -14,7 +14,7 @@ import java.net.URL;
 // --------------------------------------------------------------
 // Fichero: PeticionarioREST.java
 // Descripción: Cliente HTTP para realizar peticiones al API REST.
-// Fecha: 2026-10-03
+// Fecha: 2026-10-13
 // Autor: Fabián Useche
 // Base del código: Jordi Bataller i Mascarell
 // Aportación: limpieza y adaptación para el Sprint 0.
@@ -26,7 +26,7 @@ public class PeticionarioREST
 
 
     private static final String ETIQUETA_LOG =
-            "clienterestandroid";
+            "FABI_REST";
 
 
     // ------------------------------------------------------------
@@ -59,8 +59,8 @@ public class PeticionarioREST
 
 
     // ------------------------------------------------------------
-    // metodo: Text, url: Text, cuerpo: Text, respuesta
-    //        --> hacerPeticionREST()
+    // metodo: Text, url: Text, cuerpo: Text | Nulo, respuesta: RespuestaREST
+    //        --> hacerPeticionREST() -->
     //
     // Configura una petición HTTP y comienza su ejecución
     // asíncrona.
@@ -91,7 +91,7 @@ public class PeticionarioREST
 
 
     // ------------------------------------------------------------
-    // params --> doInBackground() --> B
+    // params: [Text] --> doInBackground() --> B
     //
     // Ejecuta la petición HTTP fuera del hilo principal.
     // ------------------------------------------------------------
@@ -108,7 +108,9 @@ public class PeticionarioREST
 
             Log.d(
                     ETIQUETA_LOG,
-                    "Conectando a "
+                    "[HTTP] "
+                            + metodo
+                            + " "
                             + urlDestino
             );
 
@@ -245,14 +247,14 @@ public class PeticionarioREST
 
             Log.d(
                     ETIQUETA_LOG,
-                    "Codigo HTTP = "
+                    "[HTTP] Codigo = "
                             + codigoRespuesta
             );
 
 
             Log.d(
                     ETIQUETA_LOG,
-                    "Respuesta = "
+                    "[HTTP] Respuesta = "
                             + cuerpoRespuesta
             );
 
@@ -264,7 +266,7 @@ public class PeticionarioREST
 
             Log.d(
                     ETIQUETA_LOG,
-                    "ERROR REST: "
+                    "[HTTP][ERROR] "
                             + e.getMessage()
             );
 
@@ -286,17 +288,21 @@ public class PeticionarioREST
     // ------------------------------------------------------------
     // resultado: B --> onPostExecute()
     //
-    // Devuelve al solicitante el código HTTP y el cuerpo
-    // recibido desde el servidor.
+    // Entrega al callback la respuesta recibida del servidor.
     // ------------------------------------------------------------
     @Override
     protected void onPostExecute(
             Boolean resultado
     ) {
 
+        super.onPostExecute(
+                resultado
+        );
+
+
         Log.d(
                 ETIQUETA_LOG,
-                "Peticion terminada: "
+                "[HTTP] Peticion terminada = "
                         + resultado
         );
 

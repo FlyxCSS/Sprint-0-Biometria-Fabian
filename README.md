@@ -1,229 +1,259 @@
 # Sprint 0 - Proyecto de Biometría y Medio Ambiente
-
 ## Descripción
-
 Este repositorio contiene el desarrollo del Sprint 0 del proyecto de Biometría y Medio Ambiente.
-
 El objetivo del Sprint 0 es comprobar el funcionamiento completo de la arquitectura del sistema mediante una medida ficticia generada en el microprocesador.
-
 El flujo completo es:
-
 ```text
 SparkFun Pro nRF52840 Mini
-        |
-        | BLE / iBeacon
-        v
+        |
+        | BLE / iBeacon
+        v
 Aplicación Android
-        |
-        | POST /api/medicion
-        v
-Servidor REST
-        |
-        v
-LogicaNegocio
-        |
-        v
+        |
+        | POST /api/medicion
+        v
+Communication
+        |
+        v
+Business Logic
+        |
+        v
 Base de datos
-        |
-        | GET /api/medicion
-        v
+        |
+        | GET /api/medicion
+        v
+Frontend Business Logic
+        |
+        v
 Interfaz Web
 ```
-
 Durante este Sprint se utiliza una medida ficticia de ozono para comprobar que todos los componentes se comunican correctamente.
 
 ---
 
 ## Componentes
-
 El proyecto está dividido en los siguientes componentes:
-
 ```text
 src/
-|
 ├── microprocesador/
-|
 ├── android/
-|
 ├── database/
-|
-├── logica/
-|
-├── rest/
-|
+├── business_logic/
+├── communication/
+├── frontend_business_logic/
 └── web/
 ```
-
 ### Microprocesador
-
 Implementado en C++ para la placa:
-
 ```text
 SparkFun Pro nRF52840 Mini
 ```
-
 El microprocesador genera una medida ficticia de O3 y la transmite mediante BLE utilizando una trama iBeacon.
-
 Durante el Sprint 0 se utiliza como valor de prueba:
-
 ```text
 1234 ppb
 ```
-
 que corresponde a:
-
 ```text
 1.234 ppm
 ```
-
 para su visualización.
+El campo `Major` contiene el tipo de medición y un contador.
+El campo `Minor` contiene el valor de la medición en ppb.
 
 ---
 
 ### Aplicación Android
-
 Implementada en Java con Android Studio.
-
 La aplicación:
-
 ```text
 escanea dispositivos BLE
-
 detecta Fabian_GTI
-
+obtiene el nombre real anunciado por BLE
 interpreta la trama iBeacon
-
 obtiene Major y Minor
-
 interpreta el tipo y contador
-
+evita mediciones duplicadas
 convierte el valor si es necesario
-
-envía la medición al servidor REST
+envía nombre_micro, tipo y valor al backend
 ```
-
-La comunicación con el servidor se realiza mediante una lógica fake:
-
+La aplicación mantiene separadas las responsabilidades principales:
 ```text
-LogicaFake.guardarMedicion()
+MainActivity
+    |
+    v
+TramaIBeacon / Utilidades
+    |
+    v
+LogicaFake
+    |
+    v
+PeticionarioREST
+```
+`MainActivity` coordina BLE y el flujo general.
+`LogicaFake` actúa como proxy de la lógica de negocio.
+`PeticionarioREST` encapsula la comunicación HTTP.
+La respuesta del backend se representa mediante:
+```text
+Medicion
+```
+con:
+```text
+nombreMicro
+fechaHora
+tipo
+valor
 ```
 
 ---
 
-### Servidor REST
-
+### Communication
 Implementado en PHP.
-
+Este componente representa la capa de comunicación del backend.
 Proporciona las rutas:
-
 ```text
 POST /api/medicion
-
 GET /api/medicion
 ```
+`POST /api/medicion` recibe una nueva medición y delega su almacenamiento en `business_logic`.
 
-`POST /api/medicion` permite almacenar una nueva medición.
+La petición incluye:
 
-`GET /api/medicion` permite recuperar la última medición almacenada.
+```text
+nombre_micro
+tipo
+valor
+```
+
+La respuesta incluye:
+
+```text
+nombre_micro
+tipo
+valor
+fecha_hora
+```
+`GET /api/medicion` solicita a `business_logic` la última medición almacenada.
+La capa `communication` gestiona HTTP, rutas, JSON y códigos de estado.
+No contiene lógica de negocio.
 
 ---
 
-### Lógica de negocio
-
-Implementada en PHP mediante la clase:
-
+### Business Logic
+Implementado en PHP mediante la clase:
 ```text
 LogicaNegocio
 ```
-
 Operaciones principales:
-
 ```text
-guardarMedicion()
-
-leerMedicion()
+nombreMicro: Text, tipo: Text, valor: R
+        --> guardarMedicion() --> Medicion
+leerMedicion() --> Medicion | Nulo
 ```
-
 La lógica:
-
 ```text
 valida las mediciones
-
 genera la fecha y hora
-
 almacena los datos
-
 recupera la última medición
+```
+Este componente no conoce detalles de HTTP.
+El flujo del backend es:
+```text
+Communication
+      |
+      v
+Business Logic
+      |
+      v
+Database
 ```
 
 ---
 
 ### Base de datos
-
 Se utiliza una base de datos MySQL con una única tabla:
-
 ```text
 Mediciones
 ```
-
 Estructura:
+```text
+nombre_micro VARCHAR(100) NOT NULL
+tipo         VARCHAR(50)  NOT NULL
+valor        DOUBLE       NOT NULL
+fecha_hora   DATETIME     NOT NULL
+PRIMARY KEY (nombre_micro, fecha_hora)
+```
+
+La clave primaria es compuesta. Dos microprocesadores distintos pueden almacenar una medición con la misma `fecha_hora`.
+
+La última medición se recupera de forma determinista mediante:
 
 ```text
-id       INT          PRIMARY KEY AUTO_INCREMENT
+ORDER BY fecha_hora DESC, nombre_micro ASC
+LIMIT 1
+```
 
-fecha    DATETIME     NOT NULL
+---
 
-tipo     VARCHAR(50)  NOT NULL
-
-valor    DOUBLE       NOT NULL
+### Frontend Business Logic
+Implementado en JavaScript.
+Este componente actúa como proxy o lógica fake para la interfaz web.
+Proporciona:
+```text
+leerMedicion()
+```
+Internamente utiliza:
+```text
+GET /api/medicion
+```
+La interfaz web no realiza directamente peticiones HTTP.
+El flujo es:
+```text
+Web
+ |
+ v
+Frontend Business Logic
+ |
+ v
+Communication
+ |
+ v
+Business Logic
+ |
+ v
+Database
 ```
 
 ---
 
 ### Interfaz Web
-
 Implementada con:
-
 ```text
 HTML
-
 CSS
-
 JavaScript
 ```
-
 La interfaz muestra la última medición almacenada.
-
-La comunicación se realiza mediante una lógica fake:
-
+La web utiliza:
 ```text
-LogicaFake.leerMedicion()
+frontend_business_logic.leerMedicion()
 ```
-
-que utiliza:
-
-```text
-GET /api/medicion
-```
-
+para obtener los datos.
 La interfaz muestra:
-
 ```text
+micro
 tipo
-
 valor
-
 fecha
-
 hora
-
 momento de la última actualización
 ```
+La GUI no contiene llamadas directas a `fetch()`.
 
 ---
 
 ## Estructura del repositorio
-
 ```text
 Sprint 0-Biometria/
 |
@@ -233,501 +263,411 @@ Sprint 0-Biometria/
 ├── .gitattributes
 |
 ├── doc/
-|   ├── prompts/
-|   |   ├── android_prompt.md
-|   |   ├── database_prompt.md
-|   |   ├── logica_prompt.md
-|   |   ├── microprocesador_prompt.md
-|   |   ├── rest_prompt.md
-|   |   ├── ux_prompt.md
-|   |   └── web_prompt.md
-|   |
-|   ├── android_design.md
-|   ├── database_design.md
-|   ├── logica_design.md
-|   ├── microprocesador_design.md
-|   ├── rest_design.md
-|   └── web_design.md
+|   |
+|   ├── prompts/
+|   |   ├── android_prompt.md
+|   |   ├── database_prompt.md
+|   |   ├── logica_prompt.md
+|   |   ├── microprocesador_prompt.md
+|   |   ├── rest_prompt.md
+|   |   ├── ux_prompt.md
+|   |   └── web_prompt.md
+|   |
+|   ├── android_design.md
+|   ├── business_logic_design.md
+|   ├── communication_design.md
+|   ├── database_design.md
+|   ├── frontend_business_logic_design.md
+|   ├── microprocesador_design.md
+|   └── web_design.md
 |
 └── src/
-    |
-    ├── android/
-    |
-    ├── database/
-    |   └── database.sql
-    |
-    ├── logica/
-    |   ├── LogicaNegocio.php
-    |   └── LogicaNegocioTest.php
-    |
-    ├── microprocesador/
-    |
-    ├── rest/
-    |   ├── index.php
-    |   └── ServidorRestTest.php
-    |
-    └── web/
-        ├── index.html
-        |
-        ├── css/
-        |   └── estilos.css
-        |
-        ├── js/
-        |   ├── app.js
-        |   └── LogicaFake.js
-        |
-        └── tests/
-            ├── LogicaFakeTest.html
-            └── LogicaFakeTest.js
+    |
+    ├── android/
+    |
+    ├── business_logic/
+    |   ├── LogicaNegocio.php
+    |   └── LogicaNegocioTest.php
+    |
+    ├── communication/
+    |   ├── index.php
+    |   └── ServidorRestTest.php
+    |
+    ├── database/
+    |   └── database.sql
+    |
+    ├── frontend_business_logic/
+    |   ├── LogicaFake.js
+    |   └── tests/
+    |       ├── LogicaFakeTest.html
+    |       └── LogicaFakeTest.js
+    |
+    ├── microprocesador/
+    |
+    └── web/
+        ├── index.html
+        |
+        ├── css/
+        |   └── estilos.css
+        |
+        └── js/
+            └── app.js
 ```
 
 ---
 
 ## Documentación de diseño
-
 La carpeta:
-
 ```text
 doc/
 ```
-
 contiene el diseño de cada componente.
-
-Existe una correspondencia entre:
-
+Existe correspondencia entre los diseños y las implementaciones:
 ```text
-doc/xxx_design.md
+doc/business_logic_design.md
+        |
+        v
+src/business_logic/
 ```
-
-y:
-
 ```text
-src/xxx/
+doc/communication_design.md
+        |
+        v
+src/communication/
 ```
-
+```text
+doc/frontend_business_logic_design.md
+        |
+        v
+src/frontend_business_logic/
+```
+```text
+doc/web_design.md
+        |
+        v
+src/web/
+```
 Los diseños incluyen:
-
 ```text
 Diseño del Componente
-
 Aclaraciones del Diseño
-
 Reglas Generales
 ```
 
 ---
 
+## Arquitectura en capas
+El backend mantiene el flujo:
+```text
+Communication
+      |
+      v
+Business Logic
+      |
+      v
+Database
+```
+La capa `business_logic` no contiene lógica HTTP.
+La capa `communication` se encarga de recibir las peticiones externas y delegarlas en la lógica de negocio.
+En el frontend web se mantiene:
+```text
+Web
+ |
+ v
+Frontend Business Logic
+ |
+ v
+Communication
+```
+La interfaz gráfica no realiza directamente llamadas HTTP.
+
+---
+
 ## Uso de Inteligencia Artificial
-
 Durante el desarrollo del Sprint 0 se ha utilizado Inteligencia Artificial siguiendo un proceso basado en diseño previo y especificaciones.
-
 Para cada componente se ha seguido el flujo:
-
 ```text
 Diseño previo
-    |
-    v
+    |
+    v
 Prompt detallado
-    |
-    v
+    |
+    v
 Generación o adaptación mediante IA
-    |
-    v
+    |
+    v
 Revisión manual
-    |
-    v
+    |
+    v
 Tests
-    |
-    v
+    |
+    v
 Corrección y validación
 ```
-
-La IA se ha utilizado como herramienta de apoyo para generar, revisar y adaptar código, pero las decisiones sobre arquitectura, requisitos y aceptación final de los resultados han sido revisadas manualmente.
-
 Los diseños utilizados como especificación se encuentran en:
-
 ```text
 doc/
 ```
-
 Los prompts utilizados para solicitar a la IA la generación o adaptación de los componentes se encuentran en:
-
 ```text
 doc/prompts/
 ```
-
 Actualmente se incluyen prompts para:
-
 ```text
 base de datos
-
 lógica de negocio
-
-servidor REST
-
+servidor REST / comunicación
 microprocesador
-
-Android y lógica fake móvil
-
+Android
 lógica fake del navegador
-
 UX web
 ```
-
-Los prompts especifican:
-
-- responsabilidades de cada componente;
-- restricciones de arquitectura;
-- entradas y salidas;
-- comentarios y notación;
-- tests automáticos;
-- funcionalidades que no deben añadirse.
-
-Después de generar o adaptar cada componente se ha comprobado que la implementación coincidiera con el diseño y se han realizado correcciones cuando ha sido necesario.
-
+La IA se ha utilizado como herramienta de apoyo.
+La arquitectura, las restricciones, la revisión del resultado y la aceptación final se han comprobado manualmente.
 Entre las revisiones realizadas durante el Sprint se encuentran:
-
-- separación entre REST y lógica de negocio;
-- separación entre lógica fake y comunicación HTTP;
-- codificación de Major y Minor;
-- control de mediciones BLE duplicadas;
-- conversión de ppb a ppm;
-- generación correcta de fecha y hora;
-- pruebas automáticas;
-- correspondencia entre documentación e implementación.
-
-La relación utilizada durante el desarrollo puede resumirse como:
-
 ```text
-Diseño
-   |
-   v
-Prompt
-   |
-   v
-Implementación
-   |
-   v
-Tests
-   |
-   v
-Revisión
+separación entre communication y business_logic
+separación entre GUI y frontend_business_logic
+codificación de Major y Minor
+control de mediciones BLE duplicadas
+conversión de ppb a ppm
+generación correcta de fecha y hora
+pruebas automáticas
+correspondencia entre diseño e implementación
 ```
 
 ---
 
 ## Despliegue
-
 ### Microprocesador
-
 El código del microprocesador se compila y carga mediante Arduino IDE sobre:
-
 ```text
 SparkFun Pro nRF52840 Mini
 ```
-
 Se utiliza la librería:
-
 ```text
 Adafruit Bluefruit nRF52
 ```
-
 La placa transmite una trama iBeacon mediante BLE.
 
 ---
 
 ### Android
-
 Abrir:
-
 ```text
 src/android/
 ```
-
 con Android Studio.
-
 Después:
-
 ```text
 sincronizar Gradle
-
 compilar el proyecto
-
 ejecutar la aplicación en un dispositivo Android compatible con BLE
 ```
-
-La aplicación necesita permisos Bluetooth y localización según la versión de Android.
+La aplicación necesita los permisos Bluetooth correspondientes a la versión de Android utilizada.
 
 ---
 
 ### Base de datos
-
 Ejecutar:
-
 ```text
 src/database/database.sql
 ```
-
 sobre una base de datos MySQL.
-
 Este archivo crea la tabla:
-
 ```text
 Mediciones
 ```
 
 ---
 
-### Servidor REST
-
-El servidor REST se encuentra en:
-
+### Backend
+La capa de comunicación se encuentra en:
 ```text
-src/rest/
+src/communication/
 ```
-
-En el despliegue real del Sprint 0 está alojado en Plesk.
-
+La lógica de negocio se encuentra en:
+```text
+src/business_logic/
+```
+En el despliegue real del Sprint 0 el backend está alojado en Plesk.
 El endpoint utilizado es:
-
 ```text
 https://fuseriv.upv.edu.es/api/medicion
 ```
-
 Las credenciales reales de la base de datos no se almacenan en el repositorio público.
-
-En Plesk se utiliza también un archivo `.htaccess` para redirigir las rutas del API hacia `index.php`.
+En Plesk se utiliza un archivo `.htaccess` para redirigir las rutas del API hacia `index.php`.
 
 ---
 
 ### Interfaz Web
-
-La web se encuentra en:
-
+La GUI se encuentra en:
 ```text
 src/web/
 ```
-
-y se despliega en el servidor web de Plesk.
-
-La interfaz utiliza:
-
+La lógica fake utilizada por la GUI se encuentra en:
 ```text
-GET /api/medicion
+src/frontend_business_logic/
 ```
-
-para recuperar la última medición.
+La web se despliega en el servidor web de Plesk.
+La interfaz principal está disponible directamente en:
+```text
+https://fuseriv.upv.edu.es
+```
+En el repositorio, la GUI continúa manteniéndose separada dentro de `src/web/`.
 
 ---
 
 ## Pruebas automáticas
-
 Los tests están separados del funcionamiento normal del sistema.
-
 No se ejecutan automáticamente al:
-
 ```text
 encender el microprocesador
-
 abrir la aplicación Android
-
-utilizar el servidor REST
-
+utilizar el servidor
 abrir la web
 ```
-
 Se ejecutan únicamente cuando se lanzan manualmente.
 
 ---
 
 ### Test del microprocesador
-
 El microprocesador incluye una comprobación en tiempo de compilación mediante:
-
 ```cpp
 static_assert
 ```
-
 para verificar la codificación del campo `Major`.
-
 Ejemplo comprobado:
-
 ```text
 tipo O3 = 11
-
 contador = 5
-
 Major = 2821
 ```
 
 ---
 
-### Tests de lógica de negocio
-
+### Tests de Business Logic
 Archivo:
-
 ```text
-src/logica/LogicaNegocioTest.php
+src/business_logic/LogicaNegocioTest.php
 ```
-
 Ejecutar desde:
-
 ```text
-src/logica/
+src/business_logic/
 ```
-
 con:
-
 ```bash
 php LogicaNegocioTest.php
 ```
-
 Se comprueba:
-
 ```text
 guardar una medición válida
-
+rechazar un nombre_micro vacío
 rechazar un tipo vacío
-
 rechazar un valor no numérico
-
 recuperar la última medición
-
+permitir la misma fecha_hora para micros distintos
 devolver null si no existen mediciones
 ```
-
 Resultado esperado:
-
 ```text
 TODOS LOS TESTS HAN PASADO
 ```
 
 ---
 
-### Tests del servidor REST
-
+### Tests de Communication
 Archivo:
-
 ```text
-src/rest/ServidorRestTest.php
+src/communication/ServidorRestTest.php
 ```
-
 Ejecutar desde:
-
 ```text
-src/rest/
+src/communication/
 ```
-
 con:
-
 ```bash
 php ServidorRestTest.php
 ```
-
 Se comprueba:
-
 ```text
 POST correcto -> HTTP 201
-
-POST con tipo vacío -> HTTP 400
-
+POST devuelve la medición correcta
+POST sin nombre_micro -> HTTP 400
+POST con nombre_micro vacío -> HTTP 400
 POST sin tipo -> HTTP 400
-
+POST con tipo vacío -> HTTP 400
 POST sin valor -> HTTP 400
-
+POST con valor no numérico -> HTTP 400
 POST con JSON inválido -> HTTP 400
-
 GET correcto -> HTTP 200
-
-respuesta GET en JSON válido
+respuesta GET con la estructura correcta
 ```
-
 Este test realiza peticiones reales al servidor desplegado.
 
 ---
 
 ### Tests Android
-
 Los tests locales se encuentran en:
-
 ```text
 src/android/app/src/test/
 ```
-
-El test principal es:
-
+Los tests principales son:
 ```text
 UtilidadesTest.java
+MedicionTest.java
 ```
-
 Se comprueba:
-
 ```text
 conversión de ppb a ppm
-
 conversión de bytes a entero
-
 conversión de bytes a hexadecimal
-
 conversión de bytes a texto
+almacenamiento correcto de nombreMicro, fechaHora, tipo y valor
 ```
-
 Se pueden ejecutar desde Android Studio con:
-
 ```text
 Run 'UtilidadesTest'
 ```
-
-o desde:
-
+El resultado esperado es:
+```text
+UtilidadesTest: 4 tests passed
+MedicionTest: 1 test passed
+BUILD SUCCESSFUL
+```
+También pueden ejecutarse desde:
 ```text
 src/android/
 ```
-
 mediante:
-
 ```bash
 gradlew test
 ```
-
 En Windows:
-
 ```bash
 gradlew.bat test
 ```
 
 ---
 
-### Tests Web
-
+### Tests de Frontend Business Logic
 Los tests se encuentran en:
-
 ```text
-src/web/tests/
+src/frontend_business_logic/tests/
 ```
-
 Archivo principal:
-
 ```text
 LogicaFakeTest.html
 ```
-
-Para ejecutarlos se abre este archivo mediante un servidor local, por ejemplo Live Server.
-
 Se comprueba:
-
 ```text
 leer una medición correcta
-
+comprobar nombre_micro, tipo, valor y fecha_hora
 utilizar /api/medicion
-
 aceptar una respuesta null
-
 detectar errores HTTP
 ```
-
 Resultado esperado:
-
 ```text
 TODOS LOS TESTS HAN PASADO
 ```
@@ -735,72 +675,70 @@ TODOS LOS TESTS HAN PASADO
 ---
 
 ## Test de funcionamiento completo
-
 El criterio principal del Sprint 0 consiste en comprobar el recorrido completo de una medida ficticia:
-
 ```text
 Medida ficticia en SparkFun
-        |
-        v
+        |
+        v
 BLE / iBeacon
-        |
-        v
+        |
+        v
 Aplicación Android
-        |
-        v
-POST REST
-        |
-        v
-LogicaNegocio
-        |
-        v
+        |
+        v
+POST
+        |
+        v
+Communication
+        |
+        v
+Business Logic
+        |
+        v
 Base de datos
-        |
-        v
-GET REST
-        |
-        v
+        |
+        v
+GET
+        |
+        v
+Frontend Business Logic
+        |
+        v
 Interfaz Web
 ```
-
 La medida utilizada durante las pruebas es:
-
 ```text
 1234 ppb
 ```
-
 equivalente a:
-
 ```text
 1.234 ppm
 ```
-
 La medición enviada desde el microprocesador puede visualizarse finalmente en la interfaz web.
-
+Durante la prueba se ha comprobado que se almacenan y muestran correctamente:
+```text
+nombre_micro = Fabian_GTI
+tipo = O3
+valor = 1.234
+fecha_hora = fecha y hora generadas por el backend
+```
 Este recorrido completo ha sido comprobado durante el Sprint 0.
 
 ---
 
 ## Ramas Git
-
 El repositorio utiliza:
-
 ```text
 master
-
 develop
 ```
-
 `develop` se utiliza durante el desarrollo del Sprint.
-
 `master` contiene la versión estable del proyecto.
 
 ---
 
 ## Autor
-
 El autor del proyecto se encuentra indicado en:
-
 ```text
 author.md
 ```

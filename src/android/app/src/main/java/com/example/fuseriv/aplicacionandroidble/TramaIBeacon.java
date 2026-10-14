@@ -26,7 +26,7 @@ public class TramaIBeacon {
 
 
     // ------------------------------------------------------------
-    // bytes --> TramaIBeacon()
+    // bytes: [N] --> TramaIBeacon()
     //
     // Extrae UUID, Major, Minor y TxPower de una trama iBeacon.
     // ------------------------------------------------------------

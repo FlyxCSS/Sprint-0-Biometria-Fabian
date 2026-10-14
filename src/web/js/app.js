@@ -15,7 +15,7 @@ let momentoUltimaActualizacion =
 
 
 // ------------------------------------------------------------
-// mostrarMedicion(medicion)
+// medicion: Medicion | Nulo --> mostrarMedicion()
 //
 // Muestra en la interfaz los datos de una medición recibida
 // desde la lógica fake.
@@ -25,6 +25,11 @@ function mostrarMedicion(
 ) {
 
     if (medicion === null) {
+
+        document.getElementById(
+            "nombreMicro"
+        ).textContent = "-";
+
 
         document.getElementById(
             "tipo"
@@ -51,6 +56,12 @@ function mostrarMedicion(
 
 
     document.getElementById(
+        "nombreMicro"
+    ).textContent =
+        medicion.nombre_micro;
+
+
+    document.getElementById(
         "tipo"
     ).textContent =
         medicion.tipo;
@@ -63,7 +74,7 @@ function mostrarMedicion(
 
 
     const fechaHora =
-        medicion.fecha.split(
+        medicion.fecha_hora.split(
             " "
         );
 
@@ -82,7 +93,7 @@ function mostrarMedicion(
 
 
 // ------------------------------------------------------------
-// actualizarTextoUltimaActualizacion()
+// actualizarTextoUltimaActualizacion() -->
 //
 // Calcula cuánto tiempo ha pasado desde la última actualización
 // correcta de la interfaz.
@@ -158,7 +169,7 @@ function actualizarTextoUltimaActualizacion() {
 
 
 // ------------------------------------------------------------
-// cargarMedicion()
+// cargarMedicion() -->
 //
 // Solicita la última medición a la lógica fake y actualiza
 // los datos mostrados en la interfaz.
@@ -237,7 +248,7 @@ async function cargarMedicion() {
 
 
 // ------------------------------------------------------------
-// inicializarInterfaz()
+// inicializarInterfaz() -->
 //
 // Configura los eventos de la interfaz y realiza la primera
 // lectura de la última medición.

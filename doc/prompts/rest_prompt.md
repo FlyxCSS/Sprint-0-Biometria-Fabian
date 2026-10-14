@@ -1,74 +1,70 @@
-# Prompt para generar el servidor REST
+# Prompt para generar Communication
 
-Quiero que generes únicamente el servidor REST del backend.
+Genera `src/communication/` a partir de `doc/communication_design.md` y utiliza `business_logic` exclusivamente mediante sus operaciones públicas.
 
-## Contexto
-Ya existe `LogicaNegocio` con:
-- `guardarMedicion(tipo, valor)`
-- `leerMedicion()`
+Lenguaje: PHP.
 
-## Regla principal
-El servidor REST NO debe acceder directamente a la base de datos. Siempre debe delegar en `LogicaNegocio`.
+Arquitectura obligatoria:
 
-## Tecnología
-PHP + PDO + JSON + HTTP.
+```text
+Communication --> Business Logic --> Database
+```
 
-## POST /medicion
-Debe recibir:
+Puntos de entrada:
+
+```text
+POST /api/medicion
+GET /api/medicion
+```
+
+POST recibe:
 
 ```json
 {
+  "nombre_micro": "Fabian_GTI",
   "tipo": "O3",
   "valor": 1.234
 }
 ```
 
-La fecha la genera la lógica de negocio.
+Debe comprobar estructuralmente:
 
-Proceso:
-1. leer cuerpo;
-2. decodificar JSON;
-3. validar JSON;
-4. comprobar `tipo`;
-5. comprobar `valor`;
-6. llamar a `guardarMedicion`;
-7. devolver la medición.
+- JSON válido;
+- presencia de `nombre_micro`;
+- presencia de `tipo`;
+- presencia de `valor`.
 
-Éxito: HTTP 201.
-Errores de entrada: HTTP 400.
+Después debe delegar en:
 
-## GET /medicion
-Debe llamar a `leerMedicion()` y devolver la última medición o `null`.
-
-Éxito: HTTP 200.
-
-Rutas desconocidas: 404.
-Errores internos: 500 sin exponer información sensible.
-
-## Funciones auxiliares
-Mantén funciones sencillas como:
-- `crearConexion()`
-- `responderJSON()`
-- `obtenerRuta()`
-
-En GitHub usa placeholders:
-`DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`.
-
-## Tests
-Comprueba:
-- POST válido -> 201;
-- respuesta correcta;
-- tipo vacío -> 400;
-- sin tipo -> 400;
-- sin valor -> 400;
-- JSON inválido -> 400;
-- GET -> 200;
-- GET devuelve JSON válido.
-
-Genera:
 ```text
-src/rest/index.php
-src/rest/ServidorRestTest.php
+nombre_micro: Text, tipo: Text, valor: R
+    --> guardarMedicion() --> Medicion
 ```
 
-No añadas rutas nuevas.
+La respuesta correcta del POST es 201.
+
+GET debe delegar en:
+
+```text
+leerMedicion() --> Medicion | Nulo
+```
+
+La respuesta correcta del GET es 200 cuando la operación se procesa correctamente.
+
+Mantener códigos:
+
+```text
+200
+201
+400
+404
+500
+```
+
+No duplicar reglas de dominio en `communication`.
+
+No almacenar credenciales reales en el repositorio.
+
+Cada función debe incluir un encabezado lógico con tipos abstractos dentro de líneas discontinuas.
+
+Mantener pruebas de integración para todos los casos descritos en `communication_design.md`.

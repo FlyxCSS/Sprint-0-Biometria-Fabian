@@ -3,7 +3,7 @@
 // --------------------------------------------------------------
 // Fichero: microprocesador.ino
 // Descripción: Programa principal del nodo sensor BLE.
-// Fecha: 2026-10-02
+// Fecha: 2026-10-13
 // Autor: Fabián Useche
 // Base del código: Jordi Bataller i Mascarell
 // Aportación: adaptación para publicar mediciones de O3 mediante
@@ -125,11 +125,15 @@ void setup() {
   );
 
   elPuerto.escribir(
-    "Dispositivo BLE: Fabian_GTI\n"
+    "Nombre micro: "
   );
 
   elPuerto.escribir(
-    "Intervalo: "
+    elPublicador.obtenerNombreMicro()
+  );
+
+  elPuerto.escribir(
+    "\nIntervalo: "
   );
 
   elPuerto.escribir(
@@ -152,6 +156,9 @@ void setup() {
 //
 // Obtiene una medición de O3 en ppb y la publica mediante
 // una trama iBeacon.
+//
+// El nombre del microprocesador se anuncia mediante BLE.
+// Android lo obtiene y lo envía al backend como nombre_micro.
 //
 // Major:
 // - byte alto: tipo de medición.
@@ -221,7 +228,16 @@ void loop() {
 
 
   elPuerto.escribir(
-    "Tipo: O3\n"
+    "Nombre micro: "
+  );
+
+  elPuerto.escribir(
+    elPublicador.obtenerNombreMicro()
+  );
+
+
+  elPuerto.escribir(
+    "\nTipo: O3\n"
   );
 
 

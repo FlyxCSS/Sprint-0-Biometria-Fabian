@@ -1,67 +1,60 @@
-# Prompt para generar la lógica de negocio
+# Prompt para generar Business Logic
 
-Quiero que generes únicamente la lógica de negocio real del backend para mi proyecto de Biometría y Medio Ambiente.
+Genera el componente `src/business_logic/` a partir de `doc/business_logic_design.md` y `doc/database_design.md`.
 
-## Contexto
-Existe una tabla `Mediciones` con `id`, `fecha`, `tipo` y `valor`.
+Lenguaje: PHP.
 
-La lógica de negocio será la única parte que acceda directamente a la base de datos.
+La clase principal debe ser `LogicaNegocio` y debe recibir una conexión de persistencia en el constructor.
 
-## Tecnología
-PHP + PDO + MySQL.
+Operaciones de dominio:
 
-## Clase
-Crea `LogicaNegocio` y recibe la conexión PDO por constructor.
-
-La clase no debe conocer rutas HTTP, GET, POST, códigos HTTP, Android ni la web.
-
-## Operaciones
 ```text
-tipo: Text, valor: R --> guardarMedicion() --> Medicion
-leerMedicion() --> Medicion | null
+nombre_micro: Text, tipo: Text, valor: R
+    --> guardarMedicion() --> Medicion
+
+leerMedicion() --> Medicion | Nulo
 ```
 
-### guardarMedicion()
-Debe:
-1. recibir `tipo` y `valor`;
-2. hacer `trim` del tipo;
-3. rechazar tipo vacío;
-4. comprobar que el valor sea numérico;
-5. convertirlo a float;
-6. generar fecha/hora en backend;
-7. usar zona `Europe/Madrid`;
-8. hacer INSERT preparado;
-9. recuperar el id;
-10. devolver `id`, `fecha`, `tipo`, `valor`.
+`guardarMedicion()` debe:
 
-### leerMedicion()
-Debe recuperar únicamente la última medición con:
+- recortar `nombre_micro` y `tipo`;
+- rechazar `nombre_micro` vacío;
+- rechazar `tipo` vacío;
+- rechazar valores no numéricos;
+- convertir el valor a real;
+- generar `fecha_hora` en `Europe/Madrid` con formato `Y-m-d H:i:s`;
+- insertar exactamente `nombre_micro`, `tipo`, `valor`, `fecha_hora`;
+- devolver esos cuatro campos.
 
-```sql
-ORDER BY id DESC
+`leerMedicion()` debe usar:
+
+```text
+ORDER BY fecha_hora DESC, nombre_micro ASC
 LIMIT 1
 ```
 
-Si no existe ninguna, devuelve `null`.
+y devolver ausencia de medición cuando la tabla esté vacía.
 
-## Separación
-No incluyas rutas REST, JSON HTTP, callbacks, Bluetooth ni interfaz.
+Restricciones arquitectónicas:
 
-## Comentarios
-Cada función importante debe llevar cabecera con diseño lógico y breve descripción siguiendo la notación de la asignatura.
+- No depender de `src/communication/`.
+- No introducir conceptos propios de la capa de comunicación en la lógica de dominio.
+- Mantener correspondencia exacta con `database_design.md`.
+- Utilizar consultas preparadas para el guardado.
+- Mantener el código claro y autoexplicativo.
 
-## Tests automáticos
-Genera tests para:
-- guardar una medición válida;
-- rechazar tipo vacío;
-- rechazar valor no numérico;
-- recuperar la última medición;
-- devolver `null` sin mediciones.
+Encabezados:
 
-Los tests deben ser reproducibles y ejecutables sin arrancar toda la aplicación.
+Cada función o método debe incluir su diseño lógico entre líneas discontinuas y usar tipos `N`, `Z`, `R`, `B`, `Text` o tipos de dominio.
 
-Genera:
-```text
-src/logica/LogicaNegocio.php
-src/logica/LogicaNegocioTest.php
-```
+Pruebas:
+
+Genera o conserva pruebas automatizadas para:
+
+- medición válida;
+- `nombre_micro` vacío;
+- `tipo` vacío;
+- valor no numérico;
+- lectura de última medición;
+- misma `fecha_hora` para micros distintos;
+- tabla vacía.

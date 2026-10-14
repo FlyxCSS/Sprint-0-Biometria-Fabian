@@ -1,92 +1,94 @@
-# Prompt para generar Android y la lógica fake móvil
+# Prompt para generar Android
 
-Quiero que generes o adaptes la parte Android del proyecto.
+Genera `src/android/` a partir de `doc/android_design.md`.
 
-## Tecnología
-Android Studio + Java + BLE + iBeacon + HttpURLConnection.
+Lenguaje: Java para Android Studio.
 
-## Objetivo
-La app debe:
-1. detectar la SparkFun por BLE;
-2. interpretar iBeacon;
-3. extraer UUID, Major, Minor y TxPower;
-4. obtener tipo y contador desde Major;
-5. tratar Minor como valor en ppb;
-6. evitar duplicados;
-7. convertir ppb a ppm si se configura;
-8. enviar una nueva medición al servidor mediante lógica fake.
+Flujo:
 
-## Beacon
-Nombre: `Fabian_GTI`.
-
-Debe existir:
-- escaneo general para depuración;
-- escaneo filtrado por `Fabian_GTI`.
-
-## Major
 ```text
-byte alto -> tipo
-byte bajo -> contador
+SparkFun --> Android --> LogicaFake --> PeticionarioREST --> Communication
 ```
 
+El dispositivo objetivo del Sprint 0 se anuncia como:
+
 ```text
-tipo = (major >> 8) & 0xFF
-contador = major & 0xFF
+Fabian_GTI
+```
+
+La aplicación puede usar ese valor como filtro de búsqueda, pero el `nombre_micro` enviado al backend debe obtenerse del anuncio BLE real recibido.
+
+Decodificación de `Major`:
+
+```text
+tipo = (Major >> 8) & 0xFF
+contador = Major & 0xFF
 ```
 
 Tipos:
-```text
-11 -> O3
-12 -> TEMPERATURA
-```
-
-## Minor
-Minor contiene ppb.
-
-Crea:
-```text
-ENVIAR_VALOR_EN_PPM
-```
-
-Si `true`: 1234 -> 1.234.
-Si `false`: 1234 -> 1234.
-
-## Anti-duplicados
-Solo enviar si:
 
 ```text
-contador != ultimoContadorEnviado
+11 = O3
+12 = TEMPERATURA
 ```
 
-## Clases
-- `MainActivity`: permisos, escaneo y coordinación.
-- `TramaIBeacon`: extracción de UUID/Major/Minor/TxPower.
-- `Utilidades`: conversiones.
-- `LogicaFake`: `guardarMedicion(tipo, valor)`.
-- `PeticionarioREST`: cliente HTTP genérico.
+`Minor` contiene el valor en ppb.
 
-## REST
-POST:
-`https://fuseriv.upv.edu.es/api/medicion`
+Cuando corresponda:
 
-JSON:
+```text
+1234 ppb --> 1.234 ppm
+```
+
+El contador debe evitar reenvíos duplicados.
+
+Modelo:
+
+```text
+Medicion = (
+    nombre_micro: Text,
+    fecha_hora: Text,
+    tipo: Text,
+    valor: R
+)
+```
+
+No crear `id`.
+
+La operación lógica de guardado es:
+
+```text
+nombre_micro: Text, tipo: Text, valor: R
+    --> guardarMedicion() --> Medicion
+```
+
+JSON enviado:
+
 ```json
 {
+  "nombre_micro": "Fabian_GTI",
   "tipo": "O3",
   "valor": 1.234
 }
 ```
 
-`MainActivity` no debe construir HTTP directamente.
+Android no genera `fecha_hora`.
 
-## Logs
-Mostrar nombre, UUID, Major, tipo, contador, Minor, TxPower, si se envía o ignora y respuesta HTTP.
+Mantener responsabilidades:
 
-## Tests
-Crear tests para:
-- 1234 ppb -> 1.234 ppm;
-- `0x0B 0x05` -> 2821;
-- bytes -> hex;
-- bytes ASCII -> texto.
+```text
+MainActivity
+LogicaFake
+PeticionarioREST
+TramaIBeacon
+Utilidades
+Medicion
+```
 
-Los métodos estáticos deben reflejarse con `--x` en la notación de diseño.
+`MainActivity` no debe implementar directamente el mecanismo de comunicación remota.
+
+Mantener logs diferenciados para BLE, lógica y REST.
+
+Cada función o método clave debe incluir diseño lógico con tipos abstractos entre líneas discontinuas.
+
+Mantener pruebas de `Utilidades` y `Medicion`.

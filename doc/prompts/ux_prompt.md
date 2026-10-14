@@ -1,105 +1,44 @@
-# Prompt para generar la UX del navegador
+# Prompt para diseñar la UX Web
 
-Quiero que generes la interfaz web del proyecto usando la lógica fake existente.
+Diseña una interfaz sencilla para la demostración del Sprint 0.
 
-## Tecnología
-- HTML: estructura
-- CSS: presentación
-- JavaScript: comportamiento
-- sin frameworks
+La pantalla debe mostrar la última medición con:
 
-## Regla principal
-La interfaz NO debe realizar peticiones REST directamente. Debe usar `logicaFake.leerMedicion()`.
-
-## Diseño
-Título:
 ```text
-Calidad del Aire
+Micro
+Tipo
+Valor
+Fecha
+Hora
 ```
 
-Subtítulo:
+y también:
+
 ```text
-Monitorización ambiental
+botón Actualizar
+texto de última actualización
+mensaje de estado
 ```
 
-Tarjeta:
+Ejemplo:
+
 ```text
-Última medición
+Micro: Fabian_GTI
+Tipo: O3
+Valor: 1.234
+Fecha: 2026-10-14
+Hora: 13:31:35
 ```
 
-Datos:
-- Tipo
-- Valor
-- Fecha
-- Hora
+La interfaz debe ser:
 
-Controles:
-- botón `Actualizar`
-- texto de última actualización
+- limpia;
+- sencilla;
+- legible;
+- académica;
+- fácil de explicar en una demo;
+- sin paneles, gráficas o navegación innecesarios.
 
-## Comportamiento
-Al cargar:
-1. configurar botón;
-2. cargar primera medición;
-3. mostrarla.
+La UX no debe definir cómo se comunica la GUI con el backend. Esa responsabilidad corresponde a `frontend_business_logic`.
 
-Al pulsar Actualizar:
-1. mostrar `Actualizando...`;
-2. desactivar botón;
-3. llamar `leerMedicion()`;
-4. actualizar datos;
-5. guardar momento de actualización;
-6. reactivar botón.
-
-Sin datos:
-`No existen mediciones almacenadas.`
-
-Error:
-`No se pudo recuperar la medición.`
-
-## Fecha
-Si llega:
-```text
-2026-10-04 14:42:10
-```
-
-mostrar:
-```text
-Fecha: 2026-10-04
-Hora: 14:42:10
-```
-
-## Última actualización
-Ejemplos:
-- `Actualizado ahora · 14:42:10`
-- `Actualizado hace 1 minuto · 14:42:10`
-- `Actualizado hace 5 minutos · 14:42:10`
-
-Actualizar ese texto cada minuto no debe provocar nuevos GET.
-
-## Visual
-Diseño sencillo, limpio, centrado y responsive.
-
-En escritorio:
-```text
-datos | controles
-```
-
-En móvil:
-```text
-datos
-----
-controles
-```
-
-## Archivos
-Genera:
-```text
-src/web/index.html
-src/web/css/estilos.css
-src/web/js/app.js
-```
-
-Carga `LogicaFake.js` antes de `app.js`.
-
-No añadas gráficas, mapas, usuarios, login ni funcionalidades extra.
+La propuesta debe ser coherente con `doc/web_design.md`.

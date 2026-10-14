@@ -1,54 +1,71 @@
-# Prompt para generar la lógica fake del navegador
+# Prompt para generar Web
 
-Quiero que generes únicamente la lógica fake del navegador.
+Genera `src/web/` a partir de `doc/web_design.md`.
 
-## Tecnología
-JavaScript + `fetch()`, sin frameworks.
-
-## Operación
-```text
-leerMedicion() --> Medicion | null
-```
-
-## REST
-Debe usar:
+Tecnologías:
 
 ```text
-GET /api/medicion
+HTML
+CSS
+JavaScript
 ```
 
-La interfaz gráfica no debe llamar directamente a `fetch()`.
+La interfaz debe mostrar:
 
-## Clase
-Crea `LogicaFake` con:
 ```text
-urlMedicion = "/api/medicion"
+Micro
+Tipo
+Valor
+Fecha
+Hora
+Última actualización
+Estado
 ```
 
-y método `leerMedicion()`.
+La GUI debe obtener datos exclusivamente mediante:
 
-Debe:
-1. hacer `fetch(urlMedicion)`;
-2. comprobar `respuesta.ok`;
-3. lanzar error HTTP si falla;
-4. devolver `respuesta.json()`.
-
-No incluyas DOM, botones ni estilos.
-
-## Tests
-Haz tests aislados usando un `fetch` simulado para comprobar:
-- lectura correcta;
-- URL exacta `/api/medicion`;
-- respuesta `null`;
-- error HTTP.
-
-Restaura `fetch` al terminar.
-
-Genera:
 ```text
-src/web/js/LogicaFake.js
-src/web/tests/LogicaFakeTest.html
-src/web/tests/LogicaFakeTest.js
+frontend_business_logic.leerMedicion()
 ```
 
-No añadas operaciones nuevas.
+No debe contener llamadas directas a:
+
+```text
+fetch()
+XMLHttpRequest
+/api/medicion
+```
+
+Funciones lógicas clave:
+
+```text
+medicion: Medicion | Nulo --> mostrarMedicion()
+actualizarTextoUltimaActualizacion()
+cargarMedicion()
+inicializarInterfaz()
+```
+
+`fecha_hora` debe separarse únicamente para presentación en fecha y hora.
+
+Debe existir un botón `Actualizar`.
+
+Mantener una interfaz sencilla, legible y fácil de explicar.
+
+Cada función JavaScript debe incluir su diseño lógico dentro de un bloque de comentarios delimitado por líneas discontinuas.
+
+Las funciones principales deben quedar cubiertas por pruebas de frontend o integración.
+
+
+## Frontend Business Logic asociado
+
+Además de la GUI, conserva o genera el componente `src/frontend_business_logic/` conforme a `doc/frontend_business_logic_design.md`.
+
+Su interfaz debe ser exactamente:
+
+```text
+leerMedicion() --> Medicion | Nulo
+```
+
+y debe encapsular internamente la comunicación remota. La GUI no debe contener `fetch()`.
+
+Mantener sus pruebas automáticas de lectura correcta, ruta utilizada, ausencia de medición y error de comunicación.

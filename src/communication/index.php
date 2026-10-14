@@ -1,17 +1,18 @@
 <?php
+declare(strict_types=1);
 
 // --------------------------------------------------------------
 // Fichero: index.php
 // Descripción: Servidor REST para guardar y recuperar mediciones.
-// Fecha: 2026-10-04
+// Fecha: 2026-10-14
 // Autor: Fabián Useche
-// Aportación: implementación del API REST utilizado durante
-//             el Sprint 0.
+// Aportación: adaptación del API REST para recibir y devolver
+//             el nombre del microprocesador.
 // Copyright: material académico y modificaciones del autor.
 // --------------------------------------------------------------
 
 
-require_once __DIR__ . '/../logica/LogicaNegocio.php';
+require_once __DIR__ . '/../business_logic/LogicaNegocio.php';
 
 
 header(
@@ -20,9 +21,9 @@ header(
 
 
 // ------------------------------------------------------------
-// crearConexion() --> PDO
+// crearConexion() --> ConexionBD
 //
-// Crea y devuelve una conexión PDO con la base de datos.
+// Crea y devuelve la conexión utilizada por la lógica de negocio.
 //
 // En el repositorio público se utilizan valores genéricos.
 // En el servidor Plesk estos valores se sustituyen por las
@@ -30,14 +31,18 @@ header(
 // ------------------------------------------------------------
 function crearConexion(): PDO
 {
+
     $host =
         'DB_HOST';
+
 
     $nombreBD =
         'DB_NAME';
 
+
     $usuario =
         'DB_USER';
+
 
     $contrasena =
         'DB_PASSWORD';
@@ -49,30 +54,31 @@ function crearConexion(): PDO
         . "charset=utf8mb4";
 
 
-    return new PDO(
-        $dsn,
-        $usuario,
-        $contrasena,
-        [
-            PDO::ATTR_ERRMODE
-                => PDO::ERRMODE_EXCEPTION,
+    return
+        new PDO(
+            $dsn,
+            $usuario,
+            $contrasena,
+            [
+                PDO::ATTR_ERRMODE
+                    => PDO::ERRMODE_EXCEPTION,
 
-            PDO::ATTR_DEFAULT_FETCH_MODE
-                => PDO::FETCH_ASSOC
-        ]
-    );
+                PDO::ATTR_DEFAULT_FETCH_MODE
+                    => PDO::FETCH_ASSOC
+            ]
+        );
 
 } // crearConexion()
 
 
 // ------------------------------------------------------------
-// datos, codigo_http: N --> responderJSON()
+// datos: DatosJSON, codigoHTTP: N --> responderJSON()
 //
 // Envía una respuesta JSON utilizando el código HTTP indicado
 // y finaliza la ejecución de la petición.
 // ------------------------------------------------------------
 function responderJSON(
-    $datos,
+    mixed $datos,
     int $codigoHTTP = 200
 ): void {
 
@@ -81,10 +87,11 @@ function responderJSON(
     );
 
 
-    echo json_encode(
-        $datos,
-        JSON_UNESCAPED_UNICODE
-    );
+    echo
+        json_encode(
+            $datos,
+            JSON_UNESCAPED_UNICODE
+        );
 
 
     exit;
@@ -99,6 +106,7 @@ function responderJSON(
 // ------------------------------------------------------------
 function obtenerRuta(): string
 {
+
     $ruta =
         parse_url(
             $_SERVER['REQUEST_URI'],
@@ -106,10 +114,11 @@ function obtenerRuta(): string
         );
 
 
-    return rtrim(
-        $ruta,
-        '/'
-    );
+    return
+        rtrim(
+            $ruta,
+            '/'
+        );
 
 } // obtenerRuta()
 
@@ -137,8 +146,15 @@ try {
     // ----------------------------------------------------------
     // POST /medicion
     //
-    // Recibe una medición en JSON y solicita a la lógica de
-    // negocio que la almacene.
+    // Entrada:
+    // {
+    //     "nombre_micro": "Fabian_GTI",
+    //     "tipo": "O3",
+    //     "valor": 1.234
+    // }
+    //
+    // Guarda una nueva medición.
+    // La fecha_hora la genera la lógica de negocio.
     // ----------------------------------------------------------
     if (
         $metodo === 'POST'
@@ -162,22 +178,45 @@ try {
             );
 
 
-        if (!is_array($datos)) {
+        if (
+            !is_array(
+                $datos
+            )
+        ) {
 
             responderJSON(
                 [
                     'error'
-                        => 'El cuerpo debe contener JSON válido'
+                        => 'El cuerpo debe contener JSON valido'
                 ],
                 400
             );
         }
 
 
-        if (!array_key_exists(
-            'tipo',
-            $datos
-        )) {
+        if (
+            !array_key_exists(
+                'nombre_micro',
+                $datos
+            )
+        ) {
+
+            responderJSON(
+                [
+                    'error'
+                        => 'Falta el campo nombre_micro'
+                ],
+                400
+            );
+        }
+
+
+        if (
+            !array_key_exists(
+                'tipo',
+                $datos
+            )
+        ) {
 
             responderJSON(
                 [
@@ -189,10 +228,12 @@ try {
         }
 
 
-        if (!array_key_exists(
-            'valor',
-            $datos
-        )) {
+        if (
+            !array_key_exists(
+                'valor',
+                $datos
+            )
+        ) {
 
             responderJSON(
                 [
@@ -208,6 +249,7 @@ try {
 
             $medicion =
                 $logica->guardarMedicion(
+                    $datos['nombre_micro'],
                     $datos['tipo'],
                     $datos['valor']
                 );
@@ -237,8 +279,15 @@ try {
     // ----------------------------------------------------------
     // GET /medicion
     //
-    // Solicita a la lógica de negocio la última medición
-    // almacenada y la devuelve en formato JSON.
+    // Devuelve la última medición almacenada.
+    //
+    // Salida:
+    // {
+    //     "nombre_micro": "Fabian_GTI",
+    //     "tipo": "O3",
+    //     "valor": 1.234,
+    //     "fecha_hora": "2026-10-14 12:00:00"
+    // }
     // ----------------------------------------------------------
     if (
         $metodo === 'GET'
@@ -273,7 +322,9 @@ try {
     );
 
 
-} catch (Throwable $e) {
+} catch (
+    Throwable $e
+) {
 
     // ----------------------------------------------------------
     // ERROR INTERNO
@@ -286,4 +337,5 @@ try {
         ],
         500
     );
+
 }

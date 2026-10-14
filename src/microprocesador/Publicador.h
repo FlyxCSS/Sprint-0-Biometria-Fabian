@@ -3,15 +3,31 @@
 // --------------------------------------------------------------
 // Fichero: Publicador.h
 // Descripción: Codificación y publicación de mediciones BLE.
-// Fecha: 2026-10-02
+// Fecha: 2026-10-13
 // Autor: Fabián Useche
 // Base del código: Jordi Bataller i Mascarell
-// Aportación: publicación genérica de mediciones mediante iBeacon.
+// Aportación: publicación genérica de mediciones mediante iBeacon
+//             y centralización del nombre del microprocesador.
 // Copyright: material académico y modificaciones del autor.
 // --------------------------------------------------------------
 
 #ifndef PUBLICADOR_H_INCLUIDO
 #define PUBLICADOR_H_INCLUIDO
+
+
+// --------------------------------------------------------------
+// CONFIGURACIÓN DEL PUBLICADOR
+//
+// El nombre BLE identifica al microprocesador.
+// Android obtiene este nombre del anuncio BLE y lo enviará al
+// backend como el campo nombre_micro.
+// --------------------------------------------------------------
+namespace ConfiguracionPublicador {
+
+  constexpr char NOMBRE_MICRO[] =
+    "Fabian_GTI";
+
+} // namespace ConfiguracionPublicador
 
 
 class Publicador {
@@ -37,7 +53,7 @@ private:
 
 
   EmisoraBLE laEmisora {
-    "Fabian_GTI",
+    ConfiguracionPublicador::NOMBRE_MICRO,
     0x004C,
     4
   };
@@ -47,6 +63,20 @@ private:
 
 
 public:
+
+  // ------------------------------------------------------------
+  // obtenerNombreMicro() --> Text
+  //
+  // Devuelve el nombre BLE que identifica al microprocesador.
+  // Android utilizará este nombre como nombre_micro.
+  // ------------------------------------------------------------
+  const char * obtenerNombreMicro() const {
+
+    return
+      ConfiguracionPublicador::NOMBRE_MICRO;
+
+  } // obtenerNombreMicro()
+
 
   // ------------------------------------------------------------
   // tipo: MedicionID, contador: N --> construirMajor() --x

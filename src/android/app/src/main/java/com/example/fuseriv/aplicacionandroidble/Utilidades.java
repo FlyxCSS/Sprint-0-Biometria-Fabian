@@ -16,7 +16,7 @@ public class Utilidades {
 
 
     // ------------------------------------------------------------
-    // bytes: Bytes --> bytesToString() --x
+    // bytes: [N] --> bytesToString() --x
     // Text <--
     //
     // Convierte un conjunto de bytes en texto.
@@ -52,7 +52,7 @@ public class Utilidades {
 
 
     // ------------------------------------------------------------
-    // bytes: Bytes --> bytesToIntOK() --x
+    // bytes: [N] --> bytesToIntOK() --x
     // N <--
     //
     // Convierte hasta cuatro bytes sin signo y en orden
@@ -98,7 +98,7 @@ public class Utilidades {
 
 
     // ------------------------------------------------------------
-    // bytes: Bytes --> bytesToHexString() --x
+    // bytes: [N] --> bytesToHexString() --x
     // Text <--
     //
     // Convierte bytes en una representación hexadecimal.

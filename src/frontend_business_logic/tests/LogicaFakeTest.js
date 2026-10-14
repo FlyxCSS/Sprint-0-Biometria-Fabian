@@ -43,7 +43,7 @@ function comprobar(
 
 
 // ------------------------------------------------------------
-// ejecutarTests()
+// ejecutarTests() -->
 //
 // Ejecuta automáticamente los tests principales de LogicaFake.
 // ------------------------------------------------------------
@@ -85,16 +85,17 @@ async function ejecutarTests() {
 
                         return {
 
-                            id: 1,
-
-                            fecha:
-                                "2026-10-04 14:42:10",
+                            nombre_micro:
+                                "Fabian_GTI",
 
                             tipo:
                                 "O3",
 
                             valor:
-                                1.234
+                                1.234,
+
+                            fecha_hora:
+                                "2026-10-14 12:00:00"
                         };
                     }
                 };
@@ -108,6 +109,12 @@ async function ejecutarTests() {
 
         comprobar(
 
+            medicion.nombre_micro
+            ===
+            "Fabian_GTI"
+
+            &&
+
             medicion.tipo === "O3"
 
             &&
@@ -116,7 +123,13 @@ async function ejecutarTests() {
                 medicion.valor
                 -
                 1.234
-            ) < 0.000001,
+            ) < 0.000001
+
+            &&
+
+            medicion.fecha_hora
+            ===
+            "2026-10-14 12:00:00",
 
             "leer medicion correcta"
         );

@@ -61,7 +61,7 @@ public:
 
 
   // ------------------------------------------------------------
-  // valor --> escribir()
+  // valor: ValorImprimible --> escribir()
   //
   // Escribe un valor mediante el puerto serie.
   // ------------------------------------------------------------
