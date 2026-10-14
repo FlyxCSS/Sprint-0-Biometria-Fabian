@@ -264,6 +264,7 @@ El filtro busca `Fabian_GTI`, pero el `nombre_micro` enviado se obtiene del anun
 ```text
 UtilidadesTest
 MedicionTest
+TramaIBeaconTest
 ```
 
 ## Aclaraciones del Diseño

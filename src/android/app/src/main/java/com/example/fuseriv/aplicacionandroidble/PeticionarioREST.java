@@ -34,6 +34,10 @@ public class PeticionarioREST
     // ------------------------------------------------------------
     public interface RespuestaREST {
 
+        // ------------------------------------------------------------
+        // codigo: Z, cuerpo: Text --> callback()
+        // Entrega la respuesta HTTP recibida.
+        // ------------------------------------------------------------
         void callback(
                 int codigo,
                 String cuerpo

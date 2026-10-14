@@ -32,10 +32,18 @@ public class LogicaFake {
     // ------------------------------------------------------------
     public interface RespuestaGuardarMedicion {
 
+        // ------------------------------------------------------------
+        // medicion: Medicion --> alGuardar()
+        // Notifica que el servidor ha guardado la medición.
+        // ------------------------------------------------------------
         void alGuardar(
                 Medicion medicion
         );
 
+        // ------------------------------------------------------------
+        // error: Text --> alFallar()
+        // Notifica el error de almacenamiento.
+        // ------------------------------------------------------------
         void alFallar(
                 String error
         );
