@@ -31,6 +31,7 @@ import java.util.List;
 // Base del código: Jordi Bataller i Mascarell
 // Aportación: adaptación para recibir mediciones de la SparkFun
 //             y enviarlas mediante la lógica fake.
+// Copyright: material académico y modificaciones del autor.
 // --------------------------------------------------------------
 
 public class MainActivity extends AppCompatActivity {
