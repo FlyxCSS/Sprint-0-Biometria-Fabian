@@ -44,7 +44,7 @@ function comprobar(
 
 
 // ------------------------------------------------------------
-// url: Text, metodo: Text, cuerpo: Text | null
+// url: Text, metodo: Text, cuerpo: Text | Nulo
 //     --> hacerPeticion() --> RespuestaHTTP
 //
 // Realiza una petición HTTP al servidor REST y devuelve

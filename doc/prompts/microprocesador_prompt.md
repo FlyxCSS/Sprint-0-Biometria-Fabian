@@ -1,75 +1,72 @@
-# Prompt — Microprocesador
+# Prompt para generar Microprocesador
 
-Genera el código del componente `microprocesador` del Sprint 0 a partir del diseño definido en `doc/microprocesador_design.md`.
+Genera `src/microprocesador/` a partir de `doc/microprocesador_design.md`.
 
-## Contexto
+Hardware:
 
-El hardware es una SparkFun Pro nRF52840 Mini y el lenguaje de implementación debe ser C++ para Arduino.
+```text
+SparkFun Pro nRF52840 Mini
+```
 
-Durante el Sprint 0 el microprocesador debe:
+Lenguaje:
 
-- generar una medición ficticia de O3 de `1234 ppb`;
-- anunciarse por BLE con el nombre `Fabian_GTI`;
-- publicar la medición mediante iBeacon;
-- codificar en `Major` el tipo de medición y un contador;
-- codificar en `Minor` el valor de O3 en ppb;
-- mantener un intervalo aproximado de 5000 ms entre publicaciones;
-- continuar funcionando aunque no exista Serial Monitor.
+```text
+C++ para Arduino
+```
 
-La codificación de `Major` debe ser:
+Durante el Sprint 0:
+
+```text
+O3 = 1234 ppb
+nombre BLE = Fabian_GTI
+```
+
+Comunicación:
+
+```text
+BLE / iBeacon
+```
+
+Codificación:
 
 ```text
 Major = (tipo << 8) | contador
+Minor = valor en ppb
 ```
 
-Para:
+Caso de prueba obligatorio:
 
 ```text
-O3 = 11
+tipo O3 = 11
 contador = 5
-```
-
-el resultado esperado es:
-
-```text
 Major = 2821
 ```
 
-El nombre BLE `Fabian_GTI` representa también el nombre del microprocesador que Android obtendrá posteriormente y enviará como `nombre_micro`.
+Mantener una comprobación estática de ese caso.
 
-## Restricciones
-
-- No añadir WiFi.
-- No comunicar directamente el microprocesador con el backend.
-- Mantener BLE/iBeacon como mecanismo de comunicación con Android.
-- Mantener separación entre `Medidor`, `Publicador`, `EmisoraBLE`, `PuertoSerie` y `LED`.
-- Mantener el código sencillo y fácil de explicar.
-- No introducir clases innecesarias.
-- Mantener una prueba automática de compilación con `static_assert` para comprobar la construcción de `Major`.
-
-## Comentarios y diseño lógico
-
-Cada función o método clave debe tener un encabezado entre líneas discontinuas con su diseño lógico siguiendo la notación oficial de clase.
-
-Ejemplos:
+Separar responsabilidades en:
 
 ```text
-ppb: N --> convertirPpbAPpm() --> R
+Medidor
+Publicador
+EmisoraBLE
+LED
+PuertoSerie
+microprocesador.ino
 ```
+
+No añadir comunicación directa con el backend.
+
+El Serial Monitor debe ser opcional.
+
+Intervalos actuales:
 
 ```text
-tipo: MedicionID, contador: N
-        --> construirMajor() --x --> N
+INTERVALO_MEDICION_MS = 5000
+DURACION_LED_MS = 100
+ESPERA_SERIAL_MS = 2500
 ```
 
-No sustituir la notación lógica por tipos concretos del lenguaje cuando el diseño use tipos abstractos.
+Usar tipos lógicos `N`, `Z`, `R`, `B`, `Text` en los encabezados de diseño, delimitados por líneas discontinuas.
 
-## Resultado esperado
-
-Genera únicamente los archivos necesarios dentro de:
-
-```text
-src/microprocesador/
-```
-
-La implementación debe corresponder exactamente con `doc/microprocesador_design.md`.
+Mantener el código claro, legible y fácil de explicar.

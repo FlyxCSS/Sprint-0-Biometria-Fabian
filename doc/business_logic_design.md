@@ -2,175 +2,113 @@
 
 ## Diseño del Componente
 
-El componente `business_logic` contiene la lógica de dominio necesaria para guardar y recuperar mediciones ambientales.
+El componente `business_logic` contiene la lógica de dominio para almacenar y recuperar mediciones ambientales. La implementación correspondiente se encuentra en `src/business_logic/`.
 
-Su diseño es independiente de cualquier mecanismo de comunicación.
+El diseño está alineado con la tabla `Mediciones` descrita en `database_design.md`.
 
-La persistencia utilizada debe coincidir con `database_design.md`.
-
-### Tipos utilizados
-
-Según la notación utilizada en clase:
-
-```text
-N      = número natural
-Z      = número entero
-R      = número real
-Texto  = texto
-VoF    = verdadero o falso
-```
-
-Tipo estructurado:
+### Tipos
 
 ```text
 Medicion = (
-    nombreMicro: Texto,
-    tipo: Texto,
+    nombre_micro: Text,
+    tipo: Text,
     valor: R,
-    fechaHora: Texto
+    fecha_hora: Text
 )
+
+Nulo = { NULO }
+
+ConexionBD
 ```
 
-Valor especial para indicar que no existe ninguna medición:
+### Diseño de la clase LogicaNegocio
 
 ```text
-Nulo = {NULO}
-```
-
-### LogicaNegocio
-
-```text
--------------------------- LogicaNegocio --------------------------
-|
-| accesoPersistencia
-|
-nombreMicro: Texto, tipo: Texto, valor: R
-        --> guardarMedicion() --> Medicion
-|
-|       leerMedicion() --> Medicion | Nulo
-|
-------------------------------------------------------------------
+                 -------- LogicaNegocio ----------------
+                 |
+                 | conexion: ConexionBD
+                 |
+                 |
+conexion: ConexionBD --> LogicaNegocio() -->
+                 |
+                 |
+nombre_micro: Text, tipo: Text, valor: R --> guardarMedicion() -->
+       Medicion <--
+                 |
+                 |
+Medicion | Nulo <-- leerMedicion() <--
+                 |
+                 ----------------------------------------
 ```
 
 ### guardarMedicion
 
-Diseño lógico:
-
 ```text
-nombreMicro: Texto, tipo: Texto, valor: R
-        --> guardarMedicion() --> Medicion
+nombre_micro: Text, tipo: Text, valor: R
+    --> guardarMedicion() --> Medicion
 ```
 
-Responsabilidad:
+- Valida `nombre_micro`.
+- Valida `tipo`.
+- Valida que `valor` sea numérico.
+- Genera `fecha_hora` con `Europe/Madrid` y formato `Y-m-d H:i:s`.
+- Inserta una fila en `Mediciones`.
+- Devuelve la medición almacenada.
 
-Valida y almacena una nueva medición.
-
-Proceso lógico:
-
-```text
-nombreMicro, tipo, valor
-          |
-          v
-validar los datos
-          |
-          v
-generar fechaHora
-          |
-          v
-almacenar Medicion
-          |
-          v
-devolver Medicion
-```
-
-Condiciones:
+Correspondencia con la base de datos:
 
 ```text
-nombreMicro != ""
-tipo != ""
-valor debe ser numérico
-```
-
-La fecha y hora se generan utilizando:
-
-```text
-zona horaria = Europe/Madrid
-formato = Y-m-d H:i:s
-```
-
-La medición almacenada debe corresponder exactamente con:
-
-```text
-Mediciones.nombre_micro
-Mediciones.tipo
-Mediciones.valor
-Mediciones.fecha_hora
+Medicion.nombre_micro <-> Mediciones.nombre_micro
+Medicion.tipo         <-> Mediciones.tipo
+Medicion.valor        <-> Mediciones.valor
+Medicion.fecha_hora   <-> Mediciones.fecha_hora
 ```
 
 ### leerMedicion
-
-Diseño lógico:
 
 ```text
 leerMedicion() --> Medicion | Nulo
 ```
 
-Responsabilidad:
-
-Obtiene la última medición almacenada.
-
-La última medición se determina primero por:
+La última medición se selecciona con:
 
 ```text
-fechaHora descendente
+fecha_hora DESC
+nombre_micro ASC
+LIMIT 1
 ```
 
-Si dos mediciones tienen exactamente la misma `fechaHora`, se utiliza como desempate:
-
-```text
-nombreMicro ascendente
-```
-
-Por tanto, el criterio es determinista.
-
-Si no existe ninguna medición:
-
-```text
-leerMedicion() --> NULO
-```
+Cuando no hay mediciones devuelve conceptualmente `NULO`.
 
 ### Pruebas
 
-Las pruebas automáticas deben comprobar al menos:
+`LogicaNegocioTest.php` comprueba:
 
 ```text
-guardar una medición válida
-rechazar nombreMicro vacío
+guardar medición válida
+rechazar nombre_micro vacío
 rechazar tipo vacío
 rechazar valor no numérico
-recuperar la última medición
-permitir la misma fechaHora para micros diferentes
-devolver NULO cuando no existen mediciones
+leer última medición
+permitir misma fecha_hora para micros distintos
+devolver NULO sin mediciones
 ```
 
 ## Aclaraciones del Diseño
 
-- `business_logic` no conoce rutas, protocolos, cabeceras ni códigos de estado.
-- `guardarMedicion()` recibe únicamente datos de dominio.
-- `nombreMicro` procede conceptualmente del microprocesador que originó la medición.
-- La fecha y hora se generan en este componente y no las envía el cliente.
-- La estructura `Medicion` coincide con la tabla `Mediciones` definida en `database_design.md`.
-- La implementación puede utilizar acceso a persistencia, pero ese mecanismo no forma parte de la interfaz lógica del dominio.
-- El desempate por `nombreMicro` solo se utiliza cuando dos mediciones comparten exactamente la misma `fechaHora`.
+- La clase `LogicaNegocio` recibe la conexión de persistencia mediante el constructor.
+- Las operaciones trabajan con datos de dominio y con la persistencia descrita en `database_design.md`.
+- `NULO` es el valor lógico de ausencia; PHP puede implementarlo mediante `null`.
+- La fecha y hora se generan al guardar la medición.
+- El desempate por `nombre_micro` hace determinista la lectura de la última medición.
 
 ## Reglas Generales
 
 - Lenguaje de programación: PHP.
 - La implementación debe mantenerse en `src/business_logic/`.
-- Las firmas lógicas deben utilizar tipos abstractos y de dominio, no tipos de transporte.
-- El componente no debe depender de `communication` ni de mecanismos de transporte.
-- El encabezado de cada función o método clave debe incluir su diseño lógico dentro de un bloque de comentarios delimitado por líneas discontinuas.
+- Las firmas lógicas deben utilizar `N`, `Z`, `R`, `B`, `Text` o tipos definidos en este documento.
+- `business_logic` no debe depender de `src/communication/`.
+- La persistencia debe coincidir con `database_design.md`.
+- El encabezado de cada función o método debe incluir su diseño lógico dentro de comentarios delimitados por líneas discontinuas.
 - El código debe ser claro, legible y autoexplicativo.
-- Las operaciones sobre persistencia deben respetar `database_design.md`.
-- Los datos deben validarse antes de almacenarse.
-- Las operaciones principales deben disponer de pruebas automáticas reproducibles.
+- Las funciones y métodos clave deben disponer de pruebas automatizadas.

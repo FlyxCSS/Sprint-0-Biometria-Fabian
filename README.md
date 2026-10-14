@@ -30,6 +30,7 @@ Interfaz Web
 Durante este Sprint se utiliza una medida ficticia de ozono para comprobar que todos los componentes se comunican correctamente.
 
 ---
+
 ## Componentes
 El proyecto está dividido en los siguientes componentes:
 ```text
@@ -59,7 +60,9 @@ que corresponde a:
 para su visualización.
 El campo `Major` contiene el tipo de medición y un contador.
 El campo `Minor` contiene el valor de la medición en ppb.
+
 ---
+
 ### Aplicación Android
 Implementada en Java con Android Studio.
 La aplicación:
@@ -101,7 +104,9 @@ fechaHora
 tipo
 valor
 ```
+
 ---
+
 ### Communication
 Implementado en PHP.
 Este componente representa la capa de comunicación del backend.
@@ -133,6 +138,7 @@ La capa `communication` gestiona HTTP, rutas, JSON y códigos de estado.
 No contiene lógica de negocio.
 
 ---
+
 ### Business Logic
 Implementado en PHP mediante la clase:
 ```text
@@ -140,7 +146,7 @@ LogicaNegocio
 ```
 Operaciones principales:
 ```text
-nombreMicro: Texto, tipo: Texto, valor: R
+nombreMicro: Text, tipo: Text, valor: R
         --> guardarMedicion() --> Medicion
 leerMedicion() --> Medicion | Nulo
 ```
@@ -162,7 +168,9 @@ Business Logic
       v
 Database
 ```
+
 ---
+
 ### Base de datos
 Se utiliza una base de datos MySQL con una única tabla:
 ```text
@@ -170,12 +178,24 @@ Mediciones
 ```
 Estructura:
 ```text
-id       INT          PRIMARY KEY AUTO_INCREMENT
-fecha    DATETIME     NOT NULL
-tipo     VARCHAR(50)  NOT NULL
-valor    DOUBLE       NOT NULL
+nombre_micro VARCHAR(100) NOT NULL
+tipo         VARCHAR(50)  NOT NULL
+valor        DOUBLE       NOT NULL
+fecha_hora   DATETIME     NOT NULL
+PRIMARY KEY (nombre_micro, fecha_hora)
 ```
+
+La clave primaria es compuesta. Dos microprocesadores distintos pueden almacenar una medición con la misma `fecha_hora`.
+
+La última medición se recupera de forma determinista mediante:
+
+```text
+ORDER BY fecha_hora DESC, nombre_micro ASC
+LIMIT 1
+```
+
 ---
+
 ### Frontend Business Logic
 Implementado en JavaScript.
 Este componente actúa como proxy o lógica fake para la interfaz web.
@@ -204,7 +224,9 @@ Business Logic
  v
 Database
 ```
+
 ---
+
 ### Interfaz Web
 Implementada con:
 ```text
@@ -230,6 +252,7 @@ momento de la última actualización
 La GUI no contiene llamadas directas a `fetch()`.
 
 ---
+
 ## Estructura del repositorio
 ```text
 Sprint 0-Biometria/
@@ -290,7 +313,9 @@ Sprint 0-Biometria/
         └── js/
             └── app.js
 ```
+
 ---
+
 ## Documentación de diseño
 La carpeta:
 ```text
@@ -328,7 +353,9 @@ Diseño del Componente
 Aclaraciones del Diseño
 Reglas Generales
 ```
+
 ---
+
 ## Arquitectura en capas
 El backend mantiene el flujo:
 ```text
@@ -355,6 +382,7 @@ Communication
 La interfaz gráfica no realiza directamente llamadas HTTP.
 
 ---
+
 ## Uso de Inteligencia Artificial
 Durante el desarrollo del Sprint 0 se ha utilizado Inteligencia Artificial siguiendo un proceso basado en diseño previo y especificaciones.
 Para cada componente se ha seguido el flujo:
@@ -407,7 +435,9 @@ generación correcta de fecha y hora
 pruebas automáticas
 correspondencia entre diseño e implementación
 ```
+
 ---
+
 ## Despliegue
 ### Microprocesador
 El código del microprocesador se compila y carga mediante Arduino IDE sobre:
@@ -421,6 +451,7 @@ Adafruit Bluefruit nRF52
 La placa transmite una trama iBeacon mediante BLE.
 
 ---
+
 ### Android
 Abrir:
 ```text
@@ -436,6 +467,7 @@ ejecutar la aplicación en un dispositivo Android compatible con BLE
 La aplicación necesita los permisos Bluetooth correspondientes a la versión de Android utilizada.
 
 ---
+
 ### Base de datos
 Ejecutar:
 ```text
@@ -446,7 +478,9 @@ Este archivo crea la tabla:
 ```text
 Mediciones
 ```
+
 ---
+
 ### Backend
 La capa de comunicación se encuentra en:
 ```text
@@ -465,6 +499,7 @@ Las credenciales reales de la base de datos no se almacenan en el repositorio p�
 En Plesk se utiliza un archivo `.htaccess` para redirigir las rutas del API hacia `index.php`.
 
 ---
+
 ### Interfaz Web
 La GUI se encuentra en:
 ```text
@@ -482,6 +517,7 @@ https://fuseriv.upv.edu.es
 En el repositorio, la GUI continúa manteniéndose separada dentro de `src/web/`.
 
 ---
+
 ## Pruebas automáticas
 Los tests están separados del funcionamiento normal del sistema.
 No se ejecutan automáticamente al:
@@ -494,6 +530,7 @@ abrir la web
 Se ejecutan únicamente cuando se lanzan manualmente.
 
 ---
+
 ### Test del microprocesador
 El microprocesador incluye una comprobación en tiempo de compilación mediante:
 ```cpp
@@ -506,7 +543,9 @@ tipo O3 = 11
 contador = 5
 Major = 2821
 ```
+
 ---
+
 ### Tests de Business Logic
 Archivo:
 ```text
@@ -534,7 +573,9 @@ Resultado esperado:
 ```text
 TODOS LOS TESTS HAN PASADO
 ```
+
 ---
+
 ### Tests de Communication
 Archivo:
 ```text
@@ -565,6 +606,7 @@ respuesta GET con la estructura correcta
 Este test realiza peticiones reales al servidor desplegado.
 
 ---
+
 ### Tests Android
 Los tests locales se encuentran en:
 ```text
@@ -605,7 +647,9 @@ En Windows:
 ```bash
 gradlew.bat test
 ```
+
 ---
+
 ### Tests de Frontend Business Logic
 Los tests se encuentran en:
 ```text
@@ -627,7 +671,9 @@ Resultado esperado:
 ```text
 TODOS LOS TESTS HAN PASADO
 ```
+
 ---
+
 ## Test de funcionamiento completo
 El criterio principal del Sprint 0 consiste en comprobar el recorrido completo de una medida ficticia:
 ```text
@@ -679,6 +725,7 @@ fecha_hora = fecha y hora generadas por el backend
 Este recorrido completo ha sido comprobado durante el Sprint 0.
 
 ---
+
 ## Ramas Git
 El repositorio utiliza:
 ```text
@@ -689,6 +736,7 @@ develop
 `master` contiene la versión estable del proyecto.
 
 ---
+
 ## Autor
 El autor del proyecto se encuentra indicado en:
 ```text

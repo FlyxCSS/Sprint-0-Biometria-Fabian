@@ -1,34 +1,23 @@
-# Prompt — Communication / API REST
+# Prompt para generar Communication
 
-Genera el componente `communication` del Sprint 0 a partir de `doc/communication_design.md`.
+Genera `src/communication/` a partir de `doc/communication_design.md` y utiliza `business_logic` exclusivamente mediante sus operaciones públicas.
 
-## Lenguaje
+Lenguaje: PHP.
 
-PHP.
-
-## Arquitectura
-
-Debe mantenerse:
+Arquitectura obligatoria:
 
 ```text
-Communication
-      |
-      v
-Business Logic
-      |
-      v
-Database
+Communication --> Business Logic --> Database
 ```
 
-`communication` puede invocar `business_logic`, pero no debe implementar reglas de dominio.
-
-## Endpoint de guardado
+Puntos de entrada:
 
 ```text
 POST /api/medicion
+GET /api/medicion
 ```
 
-Entrada:
+POST recibe:
 
 ```json
 {
@@ -38,7 +27,7 @@ Entrada:
 }
 ```
 
-La capa `communication` debe comprobar estructuralmente:
+Debe comprobar estructuralmente:
 
 - JSON válido;
 - presencia de `nombre_micro`;
@@ -48,96 +37,34 @@ La capa `communication` debe comprobar estructuralmente:
 Después debe delegar en:
 
 ```text
-nombreMicro: Texto, tipo: Texto, valor: R
-        --> guardarMedicion() --> Medicion
+nombre_micro: Text, tipo: Text, valor: R
+    --> guardarMedicion() --> Medicion
 ```
 
-No generar `fecha_hora` en `communication`.
+La respuesta correcta del POST es 201.
 
-Respuesta correcta:
-
-```json
-{
-  "nombre_micro": "Fabian_GTI",
-  "tipo": "O3",
-  "valor": 1.234,
-  "fecha_hora": "2026-10-14 12:00:00"
-}
-```
-
-Código:
-
-```text
-201
-```
-
-## Endpoint de lectura
-
-```text
-GET /api/medicion
-```
-
-Sin cuerpo de entrada.
-
-Debe invocar:
+GET debe delegar en:
 
 ```text
 leerMedicion() --> Medicion | Nulo
 ```
 
-Respuesta correcta:
+La respuesta correcta del GET es 200 cuando la operación se procesa correctamente.
+
+Mantener códigos:
 
 ```text
 200
+201
+400
+404
+500
 ```
 
-con los campos:
+No duplicar reglas de dominio en `communication`.
 
-```text
-nombre_micro
-tipo
-valor
-fecha_hora
-```
+No almacenar credenciales reales en el repositorio.
 
-## Errores
+Cada función debe incluir un encabezado lógico con tipos abstractos dentro de líneas discontinuas.
 
-Mantener:
-
-```text
-400 --> petición incorrecta
-404 --> ruta no encontrada
-500 --> error interno
-```
-
-## Pruebas
-
-Crear o mantener pruebas de integración para:
-
-- POST correcto = 201;
-- respuesta POST correcta;
-- POST sin `nombre_micro` = 400;
-- POST con `nombre_micro` vacío = 400;
-- POST sin `tipo` = 400;
-- POST con `tipo` vacío = 400;
-- POST sin `valor` = 400;
-- POST con valor no numérico = 400;
-- POST con JSON inválido = 400;
-- GET correcto = 200;
-- GET con estructura correcta.
-
-## Comentarios
-
-Mantener la cabecera de archivo del proyecto.
-
-Cada función clave debe tener un bloque delimitado por líneas discontinuas con diseño lógico.
-
-## Resultado esperado
-
-Generar únicamente:
-
-```text
-src/communication/
-```
-
-La implementación debe corresponder con `doc/communication_design.md` y utilizar las interfaces definidas en `doc/business_logic_design.md`.
+Mantener pruebas de integración para todos los casos descritos en `communication_design.md`.

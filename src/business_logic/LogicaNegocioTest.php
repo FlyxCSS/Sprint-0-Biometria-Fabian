@@ -46,7 +46,7 @@ function comprobar(
 
 
 // ------------------------------------------------------------
-// crearConexionPrueba() --> PDO
+// crearConexionPrueba() --> ConexionBD
 //
 // Crea una base de datos temporal para ejecutar los tests.
 // ------------------------------------------------------------

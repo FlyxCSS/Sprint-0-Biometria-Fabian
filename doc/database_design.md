@@ -2,83 +2,68 @@
 
 ## Diseño del Componente
 
-El componente `database` define la persistencia relacional utilizada por el Sprint 0.
-
-La tabla almacenará las mediciones ambientales recibidas desde distintos microprocesadores.
+El componente `database` define la persistencia relacional del Sprint 0. La implementación correspondiente se encuentra en `src/database/database.sql`.
 
 ```text
+====================================================================================
 TABLE: Mediciones
-
-DESCRIPTION:
-Almacena las mediciones ambientales recibidas desde los microprocesadores.
+DESCRIPTION: Almacena las mediciones ambientales recibidas desde los microprocesadores.
 
 COLUMNS:
-nombre_micro | VARCHAR(100) | NOT NULL | Nombre BLE del microprocesador que generó la medición.
-tipo         | VARCHAR(50)  | NOT NULL | Tipo de medición ambiental.
-valor        | DOUBLE       | NOT NULL | Valor numérico de la medición.
-fecha_hora   | DATETIME     | NOT NULL | Fecha y hora de almacenamiento generadas por el backend.
 
-PRIMARY KEY:
-(nombre_micro, fecha_hora)
++ nombre_micro | VARCHAR(100) | NOT NULL | Sin valor por defecto
++ tipo | VARCHAR(50) | NOT NULL | Sin valor por defecto
++ valor | DOUBLE | NOT NULL | Sin valor por defecto
++ fecha_hora | DATETIME | NOT NULL | Sin valor por defecto
+
+PRIMARY KEY: (nombre_micro, fecha_hora)
 
 FOREIGN KEYS:
-Ninguna.
+
++ Ninguna
 
 CONSTRAINTS:
-- nombre_micro no puede ser nulo.
-- tipo no puede ser nulo.
-- valor no puede ser nulo.
-- fecha_hora no puede ser nula.
-- La combinación (nombre_micro, fecha_hora) debe ser única.
+
++ nombre_micro no puede ser NULL.
++ tipo no puede ser NULL.
++ valor no puede ser NULL.
++ fecha_hora no puede ser NULL.
++ La combinación (nombre_micro, fecha_hora) debe ser única.
+====================================================================================
 ```
 
-La clave primaria es compuesta:
-
-```text
-(nombre_micro, fecha_hora)
-```
-
-Por tanto, estas dos mediciones son válidas simultáneamente:
-
-```text
-Fabian_GTI    2026-10-14 12:00:00
-Profesor_GTI  2026-10-14 12:00:00
-```
-
-porque el valor de `nombre_micro` es diferente.
-
-En cambio, no pueden existir dos filas con exactamente la misma combinación:
-
-```text
-nombre_micro + fecha_hora
-```
-
-La entidad de dominio asociada es:
+Tipo de dominio relacionado:
 
 ```text
 Medicion = (
-    nombreMicro: Texto,
-    tipo: Texto,
+    nombre_micro: Text,
+    tipo: Text,
     valor: R,
-    fechaHora: Texto
+    fecha_hora: Text
 )
+```
+
+Consulta de última medición:
+
+```text
+ORDER BY fecha_hora DESC, nombre_micro ASC
+LIMIT 1
 ```
 
 ## Aclaraciones del Diseño
 
-- La fecha y hora se almacenan mediante `DATETIME`, sin milisegundos.
-- La fecha y hora son generadas por el backend al almacenar la medición.
-- `nombre_micro` corresponde al nombre BLE del microprocesador, por ejemplo `Fabian_GTI`.
-- La clave primaria compuesta permite que dos microprocesadores diferentes almacenen una medición en el mismo segundo.
-- Durante el Sprint 0 el mismo microprocesador no genera dos mediciones en el mismo segundo.
-- El nombre físico de las columnas debe mantenerse exactamente como se especifica en este diseño.
+- No existe un campo `id`.
+- No se utiliza `AUTO_INCREMENT`.
+- `nombre_micro` identifica el origen de la medición.
+- La clave primaria es compuesta.
+- Dos micros diferentes pueden almacenar una medición en el mismo segundo.
+- En el Sprint 0 no existen claves foráneas.
 
 ## Reglas Generales
 
-- Lenguaje de definición de datos: SQL para MySQL/MariaDB.
+- Lenguaje de definición de datos: SQL compatible con MySQL/MariaDB.
 - La implementación debe mantenerse en `src/database/`.
-- La estructura implementada debe respetar exactamente `TABLE`, `COLUMNS`, `PRIMARY KEY`, `FOREIGN KEYS` y `CONSTRAINTS`.
-- Los nombres de tabla y columnas no deben modificarse sin actualizar los demás diseños dependientes.
-- El código SQL debe ser claro y legible.
-- Las consultas manuales de comprobación pueden mantenerse comentadas dentro de `database.sql`.
-- Las operaciones principales de persistencia deben quedar cubiertas mediante pruebas automáticas desde `business_logic`.
+- La tabla, columnas, clave primaria y restricciones deben coincidir exactamente con este diseño.
+- El SQL debe ser claro, legible y autoexplicativo.
+- Si se añaden funciones o procedimientos SQL, sus encabezados deben incluir su diseño lógico entre líneas discontinuas.
+- Las operaciones de persistencia deben quedar cubiertas por pruebas automatizadas desde las capas que las utilizan.

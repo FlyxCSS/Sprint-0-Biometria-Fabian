@@ -19,7 +19,7 @@ class LogicaNegocio
 
 
     // ------------------------------------------------------------
-    // conexion --> LogicaNegocio()
+    // conexion: ConexionBD --> LogicaNegocio()
     //
     // Guarda la conexión utilizada para acceder a la base de datos.
     // ------------------------------------------------------------
@@ -166,7 +166,7 @@ class LogicaNegocio
 
 
     // ------------------------------------------------------------
-    // leerMedicion() --> Medicion | null
+    // leerMedicion() --> Medicion | Nulo
     //
     // Recupera la última medición almacenada.
     // ------------------------------------------------------------

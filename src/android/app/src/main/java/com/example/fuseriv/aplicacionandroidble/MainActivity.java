@@ -395,7 +395,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                     // ------------------------------------------------------------
-                    // resultados --> onBatchScanResults()
+                    // resultados: [ResultadoBLE] --> onBatchScanResults()
                     //
                     // Procesa un conjunto de resultados BLE recibidos.
                     // ------------------------------------------------------------
@@ -663,8 +663,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     // ------------------------------------------------------------
-    // nombreMicro: Text, trama, major, minor, tipo, tipoId,
-    // contador, valor --> mostrarIBeacon()
+    // nombreMicro: Text, trama: TramaIBeaconDatos, major: N, minor: N,
+    // tipo: Text, tipoId: N, contador: N, valor: R --> mostrarIBeacon()
     //
     // Muestra en Logcat los datos principales de la trama.
     // ------------------------------------------------------------
@@ -849,7 +849,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     // ------------------------------------------------------------
-    // v --> botonBuscarTodosLosDispositivosBTLEPulsado()
+    // vista: Vista --> botonBuscarTodosLosDispositivosBTLEPulsado()
     // ------------------------------------------------------------
     public void botonBuscarTodosLosDispositivosBTLEPulsado(
             View v
@@ -861,7 +861,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     // ------------------------------------------------------------
-    // v --> botonBuscarNuestroDispositivoBTLEPulsado()
+    // vista: Vista --> botonBuscarNuestroDispositivoBTLEPulsado()
     // ------------------------------------------------------------
     public void botonBuscarNuestroDispositivoBTLEPulsado(
             View v
@@ -873,7 +873,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     // ------------------------------------------------------------
-    // v --> botonDetenerBusquedaDispositivosBTLEPulsado()
+    // vista: Vista --> botonDetenerBusquedaDispositivosBTLEPulsado()
     // ------------------------------------------------------------
     public void botonDetenerBusquedaDispositivosBTLEPulsado(
             View v
@@ -885,7 +885,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     // ------------------------------------------------------------
-    // onCreate()
+    // estado: EstadoActividad | Nulo --> onCreate()
     //
     // Inicializa la aplicación.
     // ------------------------------------------------------------
@@ -916,7 +916,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     // ------------------------------------------------------------
-    // onRequestPermissionsResult()
+    // codigo: N, permisos: [Text], resultados: [Z] --> onRequestPermissionsResult()
     //
     // Procesa el resultado de los permisos solicitados.
     // ------------------------------------------------------------
@@ -972,7 +972,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     // ------------------------------------------------------------
-    // onDestroy()
+    // onDestroy() -->
     //
     // Detiene el escaneo antes de cerrar la actividad.
     // ------------------------------------------------------------

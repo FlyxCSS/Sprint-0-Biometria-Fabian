@@ -15,7 +15,7 @@ class LogicaFake {
 
     /*
     ------------------------------------------------------------
-    LogicaFake()
+    LogicaFake() -->
 
     Inicializa el proxy con la ruta utilizada para leer mediciones.
     ------------------------------------------------------------
@@ -29,7 +29,7 @@ class LogicaFake {
 
     /*
     ------------------------------------------------------------
-    leerMedicion() --> Medicion | null
+    leerMedicion() --> Medicion | Nulo
 
     Solicita al servidor REST la última medición almacenada.
     ------------------------------------------------------------

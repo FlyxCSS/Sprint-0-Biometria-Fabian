@@ -43,7 +43,7 @@ function comprobar(
 
 
 // ------------------------------------------------------------
-// ejecutarTests()
+// ejecutarTests() -->
 //
 // Ejecuta automáticamente los tests principales de LogicaFake.
 // ------------------------------------------------------------

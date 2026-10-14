@@ -104,7 +104,7 @@ public class LogicaFake {
                     new PeticionarioREST.RespuestaREST() {
 
                         // ------------------------------------------------------------
-                        // codigo: Z, cuerpo: Text --> callback()
+                        // codigo: Z, cuerpo: Text --> callback() -->
                         //
                         // Convierte la respuesta correcta del backend en Medicion.
                         // ------------------------------------------------------------

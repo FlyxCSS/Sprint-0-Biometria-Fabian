@@ -72,7 +72,7 @@ function crearConexion(): PDO
 
 
 // ------------------------------------------------------------
-// datos, codigoHTTP: N --> responderJSON()
+// datos: DatosJSON, codigoHTTP: N --> responderJSON()
 //
 // Envía una respuesta JSON utilizando el código HTTP indicado
 // y finaliza la ejecución de la petición.

@@ -1,20 +1,16 @@
-# Prompt — Web
+# Prompt para generar Web
 
-Genera la interfaz web del Sprint 0 a partir de `doc/web_design.md`.
+Genera `src/web/` a partir de `doc/web_design.md`.
 
-## Tecnologías
+Tecnologías:
 
-Usar:
+```text
+HTML
+CSS
+JavaScript
+```
 
-- HTML;
-- CSS;
-- JavaScript.
-
-## Objetivo
-
-Mostrar la última medición ambiental.
-
-Campos visibles:
+La interfaz debe mostrar:
 
 ```text
 Micro
@@ -22,120 +18,54 @@ Tipo
 Valor
 Fecha
 Hora
+Última actualización
+Estado
 ```
 
-También debe existir:
-
-- botón `Actualizar`;
-- texto con el momento de la última actualización;
-- área de estado para errores o ausencia de datos.
-
-## Tipo recibido
-
-```text
-Medicion = (
-    nombreMicro: Texto,
-    tipo: Texto,
-    valor: R,
-    fechaHora: Texto
-)
-```
-
-Los datos concretos procedentes del proxy pueden llegar como:
-
-```text
-nombre_micro
-tipo
-valor
-fecha_hora
-```
-
-La GUI debe mostrar `fecha_hora` separada visualmente en:
-
-```text
-Fecha
-Hora
-```
-
-## Separación obligatoria
-
-La GUI NO debe usar directamente:
-
-```text
-fetch()
-XMLHttpRequest
-HTTP
-/api/medicion
-```
-
-Debe utilizar exclusivamente:
+La GUI debe obtener datos exclusivamente mediante:
 
 ```text
 frontend_business_logic.leerMedicion()
 ```
 
-La arquitectura debe ser:
+No debe contener llamadas directas a:
 
 ```text
-Web
- |
- v
-Frontend Business Logic
- |
- v
-Backend
+fetch()
+XMLHttpRequest
+/api/medicion
 ```
 
-## Funciones de interfaz
-
-Mantener funciones equivalentes a:
+Funciones lógicas clave:
 
 ```text
-Medicion | Nulo --> mostrarMedicion()
-```
-
-```text
+medicion: Medicion | Nulo --> mostrarMedicion()
 actualizarTextoUltimaActualizacion()
-```
-
-```text
 cargarMedicion()
-```
-
-```text
 inicializarInterfaz()
 ```
 
-## Despliegue
+`fecha_hora` debe separarse únicamente para presentación en fecha y hora.
 
-El código fuente del repositorio puede mantenerse dentro de:
+Debe existir un botón `Actualizar`.
 
-```text
-src/web/
-```
+Mantener una interfaz sencilla, legible y fácil de explicar.
 
-En el despliegue de Plesk, `index.html`, `css/` y `js/` pueden situarse en la raíz de `httpdocs` para que:
+Cada función JavaScript debe incluir su diseño lógico dentro de un bloque de comentarios delimitado por líneas discontinuas.
 
-```text
-https://fuseriv.upv.edu.es
-```
+Las funciones principales deben quedar cubiertas por pruebas de frontend o integración.
 
-abra directamente la interfaz.
 
-Este detalle de despliegue no debe romper la separación del repositorio.
+## Frontend Business Logic asociado
 
-## Comentarios
+Además de la GUI, conserva o genera el componente `src/frontend_business_logic/` conforme a `doc/frontend_business_logic_design.md`.
 
-Mantener cabeceras de archivo del proyecto.
-
-Las funciones JavaScript clave deben incluir encabezado de diseño lógico entre líneas discontinuas.
-
-## Resultado esperado
-
-Generar únicamente los archivos del componente:
+Su interfaz debe ser exactamente:
 
 ```text
-src/web/
+leerMedicion() --> Medicion | Nulo
 ```
 
-sin introducir comunicación HTTP directa en la GUI.
+y debe encapsular internamente la comunicación remota. La GUI no debe contener `fetch()`.
+
+Mantener sus pruebas automáticas de lectura correcta, ruta utilizada, ausencia de medición y error de comunicación.

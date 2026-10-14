@@ -59,8 +59,8 @@ public class PeticionarioREST
 
 
     // ------------------------------------------------------------
-    // metodo: Text, url: Text, cuerpo: Text, respuesta
-    //        --> hacerPeticionREST()
+    // metodo: Text, url: Text, cuerpo: Text | Nulo, respuesta: RespuestaREST
+    //        --> hacerPeticionREST() -->
     //
     // Configura una petición HTTP y comienza su ejecución
     // asíncrona.
@@ -91,7 +91,7 @@ public class PeticionarioREST
 
 
     // ------------------------------------------------------------
-    // params --> doInBackground() --> B
+    // params: [Text] --> doInBackground() --> B
     //
     // Ejecuta la petición HTTP fuera del hilo principal.
     // ------------------------------------------------------------
