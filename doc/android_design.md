@@ -2,6 +2,9 @@
 
 ## Diseño del Componente
 
+Este componente actúa como puente entre el microprocesador y el backend. Su responsabilidad principal es detectar la baliza BLE/iBeacon, interpretar sus datos, convertir la medición al formato esperado y delegar el envío sin mezclar esa responsabilidad con la implementación concreta de la comunicación remota.
+
+
 El componente `android` recibe anuncios BLE/iBeacon, interpreta la medición y solicita su almacenamiento al backend. La implementación se encuentra en `src/android/`.
 
 ```text
@@ -38,6 +41,9 @@ RespuestaREST
 ```
 
 ### Diseño de la clase MainActivity
+
+`MainActivity` coordina el flujo principal de la aplicación Android. Gestiona el escaneo BLE, procesa los resultados recibidos, interpreta la medición y delega su almacenamiento en `LogicaFake`.
+
 
 ```text
                  -------------------- MainActivity ---------------------
@@ -98,6 +104,9 @@ nombre_micro: Text, tipo: Text, valor: R --> enviarMedicion() -->
 
 ### Diseño de la clase Medicion
 
+`Medicion` representa los datos de una medición ambiental dentro de la aplicación. Agrupa el nombre del microprocesador, la fecha y hora, el tipo de medida y su valor.
+
+
 ```text
                  ------------- Medicion ----------------
                  |
@@ -125,6 +134,9 @@ nombreMicro: Text, fechaHora: Text, tipo: Text, valor: R --> Medicion() -->
 ```
 
 ### Diseño de la clase TramaIBeacon
+
+`TramaIBeacon` representa y permite consultar los campos principales de una trama iBeacon recibida por BLE. Su función es aislar la interpretación de UUID, `Major`, `Minor` y potencia transmitida.
+
 
 ```text
                  ----------- TramaIBeacon -------------
@@ -154,6 +166,9 @@ bytes: [N]    --> TramaIBeacon() -->
 
 ### Diseño de la clase Utilidades
 
+`Utilidades` agrupa operaciones auxiliares puras usadas para convertir bytes y transformar unidades. Sus métodos no mantienen estado y por eso se representan como operaciones estáticas.
+
+
 Todos los métodos son estáticos.
 
 ```text
@@ -180,6 +195,9 @@ ppb: N        --> ppbAPpm() --x
 
 ### Diseño de la clase LogicaFake
 
+`LogicaFake` ofrece a `MainActivity` una operación de negocio sencilla para guardar mediciones. Oculta los detalles de cómo se realiza la petición remota y mantiene separadas las responsabilidades.
+
+
 ```text
                  ------------- LogicaFake -----------------
                  |
@@ -193,6 +211,9 @@ nombre_micro: Text, tipo: Text, valor: R --> guardarMedicion() -->
 La respuesta asíncrona de Java es un mecanismo de implementación; la operación lógica sigue siendo la anterior.
 
 ### Diseño de la clase PeticionarioREST
+
+`PeticionarioREST` encapsula la ejecución de la petición remota utilizada por Android. Su responsabilidad es realizar la comunicación y devolver el resultado a la capa que la solicitó.
+
 
 ```text
                  ---------- PeticionarioREST ----------------
@@ -216,6 +237,9 @@ resultado: B   --> onPostExecute() -->
 ```
 
 ### Interpretación iBeacon
+
+Esta sección define cómo se separan el tipo de medición y el contador almacenados en `Major`, y cómo se interpreta el valor recibido en `Minor`.
+
 
 ```text
 tipo = (Major >> 8) & 0xFF

@@ -2,6 +2,9 @@
 
 ## Diseño del Componente
 
+Este componente concentra las reglas de dominio del Sprint 0. Su objetivo es validar una medición, generar su fecha y hora de almacenamiento y recuperar la última medición disponible, manteniendo la lógica separada de la capa de comunicación.
+
+
 El componente `business_logic` contiene la lógica de dominio para almacenar y recuperar mediciones ambientales. La implementación correspondiente se encuentra en `src/business_logic/`.
 
 El diseño está alineado con la tabla `Mediciones` descrita en `database_design.md`.
@@ -22,6 +25,9 @@ ConexionBD
 ```
 
 ### Diseño de la clase LogicaNegocio
+
+`LogicaNegocio` implementa las operaciones centrales del dominio. Valida y almacena nuevas mediciones y permite recuperar la última medición guardada de forma determinista.
+
 
 ```text
                  -------- LogicaNegocio ----------------

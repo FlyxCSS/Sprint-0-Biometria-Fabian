@@ -2,6 +2,9 @@
 
 ## Diseño del Componente
 
+Este componente implementa únicamente la presentación de la última medición. Su responsabilidad es mostrar los datos recibidos, permitir una actualización manual y reflejar el estado de la interfaz sin realizar directamente la comunicación con el backend.
+
+
 El componente `web` implementa la GUI del Sprint 0. Su implementación se encuentra en `src/web/`.
 
 ```text

@@ -2,6 +2,9 @@
 
 ## Diseño del Componente
 
+Este componente representa la frontera externa del backend. Recibe las peticiones, comprueba que su estructura sea válida, delega las operaciones en `business_logic` y transforma el resultado en una respuesta para el cliente.
+
+
 El componente `communication` define los puntos de entrada externos del backend. Su implementación se encuentra en `src/communication/`.
 
 ```text

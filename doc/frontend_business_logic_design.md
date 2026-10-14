@@ -2,6 +2,9 @@
 
 ## Diseño del Componente
 
+Este componente actúa como proxy entre la interfaz web y el backend. Expone a la GUI una operación de dominio sencilla y oculta por completo el mecanismo utilizado para obtener la medición desde el servidor.
+
+
 El componente `frontend_business_logic` es el proxy utilizado por la GUI web. Su implementación se encuentra en `src/frontend_business_logic/`.
 
 ### Tipos
@@ -18,6 +21,9 @@ Nulo = { NULO }
 ```
 
 ### Diseño de la clase LogicaFake
+
+`LogicaFake` es el proxy consumido por la interfaz web. Presenta la misma operación lógica de lectura que el backend y mantiene encapsulado el acceso remoto.
+
 
 ```text
                  ----------- LogicaFake --------------

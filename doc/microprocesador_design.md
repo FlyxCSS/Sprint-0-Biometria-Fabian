@@ -2,6 +2,9 @@
 
 ## Diseño del Componente
 
+Este componente genera y publica la medición utilizada en el Sprint 0. Separa la obtención del valor, la construcción de los datos iBeacon, la emisión BLE y las tareas auxiliares de depuración e indicación visual.
+
+
 El componente `microprocesador` se ejecuta sobre una SparkFun Pro nRF52840 Mini y publica una medición ficticia mediante BLE/iBeacon. La implementación se encuentra en `src/microprocesador/`.
 
 ### Tipos
@@ -13,6 +16,9 @@ ValorImprimible = Text | N | Z | R
 ```
 
 ### Diseño de la clase Medidor
+
+`Medidor` representa la fuente de la medición ambiental. En el Sprint 0 devuelve un valor ficticio de O3 para poder validar el flujo completo del sistema.
+
 
 ```text
                  ----------- Medidor ---------------
@@ -29,6 +35,9 @@ ValorImprimible = Text | N | Z | R
 ```
 
 ### Diseño de la clase Publicador
+
+`Publicador` coordina la preparación y publicación de una medida. Construye `Major`, utiliza `Minor` como valor de la medición y delega la emisión BLE en `EmisoraBLE`.
+
 
 ```text
                  ------------ Publicador ----------------
@@ -53,6 +62,9 @@ tipo: MedicionID, valor: N, contador: N, tiempo: N --> publicarMedida() -->
 ```
 
 ### Diseño de la clase EmisoraBLE
+
+`EmisoraBLE` encapsula la configuración y emisión de anuncios BLE/iBeacon. Se encarga del nombre BLE, los parámetros de la baliza y el inicio o detención del anuncio.
+
 
 ```text
                  ------------ EmisoraBLE ----------------
@@ -81,6 +93,9 @@ uuid: UUID, major: N, minor: N, txPower: Z --> emitirAnuncioIBeacon() -->
 
 ### Diseño de la clase LED
 
+`LED` encapsula el control del indicador luminoso de la placa. Permite encenderlo, apagarlo, alternarlo o mantenerlo activo durante un intervalo.
+
+
 ```text
                  --------------- LED ----------------
                  |
@@ -107,6 +122,9 @@ tiempo: N     --> brillar() -->
 
 ### Diseño de la clase PuertoSerie
 
+`PuertoSerie` encapsula la salida de información de depuración por puerto serie. Permite esperar la disponibilidad del puerto y escribir valores sin afectar al funcionamiento principal del sistema.
+
+
 ```text
                  ----------- PuertoSerie -------------
                  |
@@ -126,6 +144,9 @@ valor: R, decimales: N --> escribirDecimal() -->
 ```
 
 ### Función del programa principal
+
+El programa principal inicializa los componentes y ejecuta periódicamente el ciclo de medición, depuración y publicación BLE.
+
 
 ```text
 ppb: N --> convertirPpbAPpm() --> R

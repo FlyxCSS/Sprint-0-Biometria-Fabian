@@ -2,6 +2,9 @@
 
 ## Diseño del Componente
 
+Este componente define cómo se persisten las mediciones ambientales. El diseño fija la estructura exacta de la tabla `Mediciones`, su clave primaria compuesta y las restricciones que deben respetar las operaciones de almacenamiento.
+
+
 El componente `database` define la persistencia relacional del Sprint 0. La implementación correspondiente se encuentra en `src/database/database.sql`.
 
 ```text
