@@ -2,19 +2,9 @@
 
 ## Diseño del Componente
 
-El componente `web` contiene la interfaz gráfica web utilizada durante el Sprint 0.
+El componente `web` contiene la interfaz gráfica utilizada para mostrar la última medición ambiental.
 
-Su responsabilidad es mostrar al usuario la última medición disponible y permitir actualizar manualmente la información mostrada.
-
-La interfaz web no realiza directamente comunicación HTTP.
-
-Toda operación de acceso al backend se realiza mediante el componente:
-
-```text
-frontend_business_logic
-```
-
-El flujo es:
+La interfaz utiliza exclusivamente `frontend_business_logic` para obtener datos.
 
 ```text
 Web
@@ -32,122 +22,67 @@ Business Logic
 Database
 ```
 
----
+### Tipos utilizados
 
-### Elementos de la interfaz
+```text
+R      = número real
+Texto  = texto
+```
+
+```text
+Medicion = (
+    nombreMicro: Texto,
+    tipo: Texto,
+    valor: R,
+    fechaHora: Texto
+)
+```
+
+```text
+Nulo = {NULO}
+```
+
+### Elementos mostrados
 
 La pantalla principal muestra:
 
 ```text
+nombre del microprocesador
 tipo
-
 valor
-
 fecha
-
 hora
-
 momento de la última actualización
-
 estado de la operación
 ```
-
-También incluye un botón para solicitar manualmente la última medición.
-
----
-
-### inicializarInterfaz
-
-```text
-inicializarInterfaz()
-```
-
-Responsabilidad:
-
-Inicializa la interfaz web.
-
-Debe:
-
-```text
-asociar eventos
-
-realizar una primera carga de datos
-
-inicializar el texto de última actualización
-```
-
----
-
-### cargarMedicion
-
-```text
-cargarMedicion()
-```
-
-Responsabilidad:
-
-Solicita la última medición mediante el componente `frontend_business_logic`.
-
-El flujo es:
-
-```text
-usuario pulsa actualizar
-        |
-        v
-cargarMedicion()
-        |
-        v
-frontend_business_logic.leerMedicion()
-        |
-        v
-Medicion | null
-        |
-        v
-mostrarMedicion()
-```
-
-La función no debe utilizar directamente:
-
-```text
-fetch()
-
-GET
-
-POST
-
-HTTP
-
-/api/medicion
-```
-
----
 
 ### mostrarMedicion
 
 ```text
-medicion: Medicion | null
-    --> mostrarMedicion()
+Medicion | Nulo --> mostrarMedicion()
 ```
 
 Responsabilidad:
 
-Actualiza los elementos visuales de la página con la medición recibida.
+Muestra en pantalla la medición recibida.
 
-Si existe una medición debe mostrar:
+Si recibe una medición, presenta:
 
 ```text
+nombreMicro
 tipo
-
 valor
-
 fecha
-
 hora
 ```
 
-Si no existe ninguna medición debe mostrar un estado adecuado al usuario.
+`fecha` y `hora` se obtienen visualmente a partir de:
 
----
+```text
+fechaHora
+```
+
+Si recibe `NULO`, los campos se muestran vacíos o con un valor neutro.
 
 ### actualizarTextoUltimaActualizacion
 
@@ -157,119 +92,93 @@ actualizarTextoUltimaActualizacion()
 
 Responsabilidad:
 
-Actualiza únicamente el texto visual que indica cuánto tiempo ha pasado desde la última actualización.
-
-Esta función no realiza peticiones al backend.
+Actualiza el texto que indica el tiempo transcurrido desde la última actualización correcta.
 
 Ejemplos:
 
 ```text
 Actualizado ahora
-
 Actualizado hace 1 minuto
-
-Actualizado hace 5 minutos
+Actualizado hace N minutos
 ```
 
----
+No solicita nuevas mediciones.
 
-### Relación con frontend_business_logic
-
-La interfaz web utiliza únicamente la operación:
+### cargarMedicion
 
 ```text
-leerMedicion() --> Medicion | null
+cargarMedicion()
 ```
 
-definida en:
+Responsabilidad:
+
+Solicita la última medición a `frontend_business_logic` y actualiza la interfaz.
+
+Flujo:
 
 ```text
-frontend_business_logic_design.md
+cargarMedicion()
+      |
+      v
+frontend_business_logic.leerMedicion()
+      |
+      v
+Medicion | Nulo
+      |
+      v
+mostrarMedicion()
 ```
 
-El componente `web` no conoce cómo se obtiene la medición.
-
-Por tanto, no debe conocer:
+### inicializarInterfaz
 
 ```text
-fetch()
-
-HTTP
-
-REST
-
-rutas
-
-códigos de estado
+inicializarInterfaz()
 ```
 
-Estos detalles quedan encapsulados en `frontend_business_logic`.
+Responsabilidad:
 
----
+Inicializa la interfaz.
 
-### Estructura del componente
-
-La interfaz se implementa mediante:
+Debe:
 
 ```text
-HTML
-
-CSS
-
-JavaScript
+asociar el botón de actualización
+realizar una primera carga
+activar la actualización visual del texto temporal
 ```
 
-Los elementos principales se encuentran en:
+### Estructura lógica de la GUI
 
 ```text
-src/web/
-├── index.html
-├── css/
-│   └── estilos.css
-└── js/
-    └── app.js
+----------------------------- Web -----------------------------
+|
+Medicion | Nulo --> mostrarMedicion()
+|
+|                actualizarTextoUltimaActualizacion()
+|
+|                cargarMedicion()
+|
+|                inicializarInterfaz()
+|
+---------------------------------------------------------------
 ```
-
-La lógica fake utilizada para acceder al backend no pertenece a este componente.
-
-Se encuentra en:
-
-```text
-src/frontend_business_logic/
-```
-
-y está documentada en:
-
-```text
-doc/frontend_business_logic_design.md
-```
-
----
 
 ## Aclaraciones del Diseño
 
-- El componente `web` representa la interfaz gráfica del navegador.
-- La interfaz está implementada con HTML, CSS y JavaScript.
-- La interfaz únicamente presenta información y gestiona la interacción con el usuario.
-- La interfaz no realiza llamadas HTTP directas.
-- La obtención de mediciones se delega en `frontend_business_logic`.
-- `app.js` controla el comportamiento visual de la página.
-- `index.html` define la estructura de la interfaz.
-- `estilos.css` define la apariencia visual.
-- La actualización del texto temporal no provoca nuevas peticiones al servidor.
-- El botón de actualización solicita una nueva lectura mediante `frontend_business_logic`.
-- `LogicaFake.js` no pertenece al componente `web`, sino a `frontend_business_logic`.
-
----
+- La interfaz muestra el nombre del microprocesador recibido en `nombre_micro`.
+- La interfaz separa visualmente `fecha_hora` en fecha y hora.
+- La GUI no conoce cómo se realiza la comunicación con el backend.
+- La GUI utiliza únicamente `frontend_business_logic.leerMedicion()`.
+- La interfaz puede actualizarse manualmente mediante el botón `Actualizar`.
+- La actualización del texto temporal no realiza nuevas lecturas del backend.
+- En el despliegue del Sprint 0, la página principal puede situarse en la raíz del servidor para que el dominio abra directamente la interfaz.
 
 ## Reglas Generales
 
-- Lenguajes utilizados: HTML, CSS y JavaScript.
-- La implementación debe mantenerse en `src/web/` y corresponder con este diseño.
-- Cada fichero debe incluir una cabecera con nombre, descripción, fecha, autor, aportación y copyright cuando corresponda.
-- Las funciones JavaScript clave deben incluir su diseño lógico y una breve descripción dentro de bloques de comentarios delimitados por líneas discontinuas.
-- El código debe mantenerse claro, sencillo y autoexplicativo.
-- El componente `web` no debe contener llamadas directas a `fetch()`.
-- El componente `web` no debe conocer rutas REST ni códigos HTTP.
-- Toda comunicación con el backend debe realizarse mediante `frontend_business_logic`.
-- La implementación debe mantener separadas las responsabilidades de presentación y comunicación.
+- Lenguajes de implementación: HTML, CSS y JavaScript.
+- La implementación del componente debe mantenerse conceptualmente separada de `frontend_business_logic`.
+- El JavaScript de la GUI no debe realizar llamadas directas a `fetch()`.
+- El encabezado de cada función clave debe incluir su diseño lógico dentro de un bloque de comentarios delimitado por líneas discontinuas.
+- El código debe ser claro, legible y autoexplicativo.
+- La GUI debe trabajar con tipos de dominio recibidos desde `frontend_business_logic`.
+- Las rutas y detalles HTTP no deben formar parte de la lógica de interfaz.

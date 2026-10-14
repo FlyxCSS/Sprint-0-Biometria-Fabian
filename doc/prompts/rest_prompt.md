@@ -1,136 +1,143 @@
-# Prompt para generar Communication
+# Prompt — Communication / API REST
 
-Quiero que generes o adaptes únicamente la capa de comunicación del backend para mi Sprint 0 del proyecto de Biometría y Medio Ambiente.
+Genera el componente `communication` del Sprint 0 a partir de `doc/communication_design.md`.
+
+## Lenguaje
+
+PHP.
 
 ## Arquitectura
 
-El backend debe respetar:
+Debe mantenerse:
 
 ```text
 Communication
-      ↓
+      |
+      v
 Business Logic
-      ↓
+      |
+      v
 Database
 ```
 
-Este prompt afecta únicamente a:
+`communication` puede invocar `business_logic`, pero no debe implementar reglas de dominio.
 
-```text
-doc/communication_design.md
-src/communication/
-```
-
-## Objetivo
-
-Implementar en PHP una API REST sencilla que reciba peticiones externas y delegue la lógica en:
-
-```text
-src/business_logic/LogicaNegocio.php
-```
-
-La capa `communication` puede conocer HTTP.
-
-La capa `business_logic` no debe conocerlo.
-
-## Endpoints
-
-Implementa:
+## Endpoint de guardado
 
 ```text
 POST /api/medicion
-GET /api/medicion
 ```
 
-## POST /api/medicion
-
-Debe:
-
-1. leer el JSON recibido;
-2. comprobar que existe `tipo`;
-3. comprobar que existe `valor`;
-4. delegar en:
-
-```text
-LogicaNegocio.guardarMedicion(tipo, valor)
-```
-
-5. responder en JSON;
-6. utilizar HTTP 201 cuando se crea correctamente;
-7. utilizar HTTP 400 cuando la petición sea incorrecta.
-
-El JSON de entrada es:
+Entrada:
 
 ```json
 {
+  "nombre_micro": "Fabian_GTI",
   "tipo": "O3",
   "valor": 1.234
 }
 ```
 
-La respuesta correcta debe incluir la `Medicion` creada.
+La capa `communication` debe comprobar estructuralmente:
 
-## GET /api/medicion
+- JSON válido;
+- presencia de `nombre_micro`;
+- presencia de `tipo`;
+- presencia de `valor`.
 
-Debe llamar a:
+Después debe delegar en:
 
 ```text
-LogicaNegocio.leerMedicion()
+nombreMicro: Texto, tipo: Texto, valor: R
+        --> guardarMedicion() --> Medicion
 ```
 
-y devolver la última medición en JSON.
+No generar `fecha_hora` en `communication`.
 
-Si no hay mediciones puede devolver `null`.
+Respuesta correcta:
 
-Una petición correcta utiliza HTTP 200.
+```json
+{
+  "nombre_micro": "Fabian_GTI",
+  "tipo": "O3",
+  "valor": 1.234,
+  "fecha_hora": "2026-10-14 12:00:00"
+}
+```
+
+Código:
+
+```text
+201
+```
+
+## Endpoint de lectura
+
+```text
+GET /api/medicion
+```
+
+Sin cuerpo de entrada.
+
+Debe invocar:
+
+```text
+leerMedicion() --> Medicion | Nulo
+```
+
+Respuesta correcta:
+
+```text
+200
+```
+
+con los campos:
+
+```text
+nombre_micro
+tipo
+valor
+fecha_hora
+```
 
 ## Errores
 
-Utiliza:
+Mantener:
 
 ```text
-400 -> petición incorrecta
-404 -> ruta no encontrada
-500 -> error interno
+400 --> petición incorrecta
+404 --> ruta no encontrada
+500 --> error interno
 ```
 
-## Archivos
+## Pruebas
 
-Genera o adapta:
+Crear o mantener pruebas de integración para:
+
+- POST correcto = 201;
+- respuesta POST correcta;
+- POST sin `nombre_micro` = 400;
+- POST con `nombre_micro` vacío = 400;
+- POST sin `tipo` = 400;
+- POST con `tipo` vacío = 400;
+- POST sin `valor` = 400;
+- POST con valor no numérico = 400;
+- POST con JSON inválido = 400;
+- GET correcto = 200;
+- GET con estructura correcta.
+
+## Comentarios
+
+Mantener la cabecera de archivo del proyecto.
+
+Cada función clave debe tener un bloque delimitado por líneas discontinuas con diseño lógico.
+
+## Resultado esperado
+
+Generar únicamente:
 
 ```text
-src/communication/index.php
-src/communication/ServidorRestTest.php
+src/communication/
 ```
 
-## Dependencias
-
-`src/communication/` puede depender de:
-
-```text
-src/business_logic/
-```
-
-pero nunca al revés.
-
-## Tests
-
-Comprueba al menos:
-
-```text
-POST correcto -> 201
-POST con tipo vacío -> 400
-POST sin tipo -> 400
-POST sin valor -> 400
-POST con JSON inválido -> 400
-GET correcto -> 200
-respuesta GET en JSON válido
-```
-
-## Restricciones
-
-No escribas SQL directamente en `communication`.
-
-No dupliques las validaciones de negocio que ya pertenecen a `LogicaNegocio`.
-
-No mezcles HTML o GUI con este componente.
+La implementación debe corresponder con `doc/communication_design.md` y utilizar las interfaces definidas en `doc/business_logic_design.md`.

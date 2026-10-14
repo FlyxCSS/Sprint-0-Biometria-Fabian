@@ -1,204 +1,145 @@
-# Prompt para generar Android
+# Prompt — Android
 
-Quiero que generes o adaptes únicamente el componente Android del Sprint 0 del proyecto de Biometría y Medio Ambiente.
+Genera el componente Android del Sprint 0 a partir de `doc/android_design.md`.
 
-## Arquitectura
+## Contexto
+
+La aplicación debe implementarse en Java para Android Studio.
 
 El flujo es:
 
 ```text
 SparkFun
-   ↓ BLE / iBeacon
+   |
+   | BLE / iBeacon
+   v
 Android
-   ↓
-Communication
-   ↓
-Business Logic
-   ↓
-Database
-```
-
-El código Android se encuentra en:
-
-```text
-src/android/
-```
-
-Debe desarrollarse en Java con Android Studio.
-
-## Objetivo
-
-La aplicación debe:
-
-```text
-escanear dispositivos BLE
-mostrar todos los dispositivos cuando se solicite
-buscar específicamente Fabian_GTI
-interpretar la trama iBeacon
-extraer Major y Minor
-interpretar tipo y contador
-evitar mediciones duplicadas
-convertir ppb a ppm cuando corresponda
-enviar la medición al backend
-```
-
-## Separación de responsabilidades
-
-Mantén:
-
-```text
-MainActivity
-    ↓
-TramaIBeacon / Utilidades
-    ↓
+   |
+   v
 LogicaFake
-    ↓
+   |
+   v
 PeticionarioREST
+   |
+   v
+Backend
 ```
 
-`MainActivity` coordina BLE y la interacción.
-
-`TramaIBeacon` interpreta la trama.
-
-`Utilidades` realiza conversiones.
-
-`LogicaFake` presenta operaciones de dominio.
-
-`PeticionarioREST` encapsula HTTP.
-
-## Beacon
-
-Nombre:
+El dispositivo BLE buscado durante el Sprint 0 se llama:
 
 ```text
 Fabian_GTI
 ```
 
-Major:
+La aplicación debe obtener el nombre real recibido desde el anuncio BLE y enviarlo posteriormente como:
 
 ```text
-byte alto -> tipo
-byte bajo -> contador
+nombre_micro
+```
+
+Aunque se filtre por `Fabian_GTI`, el valor enviado al backend debe proceder del resultado BLE recibido.
+
+## Decodificación iBeacon
+
+`Major` contiene:
+
+```text
+byte alto = tipo
+byte bajo = contador
+```
+
+Por tanto:
+
+```text
+tipo = (Major >> 8) & 0xFF
+contador = Major & 0xFF
 ```
 
 Tipos:
 
 ```text
-O3 = 11
-TEMPERATURA = 12
+11 --> O3
+12 --> TEMPERATURA
 ```
 
-Extracción:
+`Minor` contiene el valor en ppb.
+
+Cuando la configuración de envío en ppm esté activa:
 
 ```text
-tipo = (major >> 8) & 0xFF
-contador = major & 0xFF
+1234 ppb --> 1.234 ppm
 ```
 
-Minor contiene el valor en ppb.
+## Evitar duplicados
 
-Ejemplo:
+El contador de `Major` debe utilizarse para no reenviar varias veces la misma medición recibida por BLE.
 
-```text
-Minor = 1234
-```
+## Modelo Medicion
 
-## Conversión
-
-Debe existir una configuración:
-
-```text
-ENVIAR_VALOR_EN_PPM
-```
-
-Si es `true`:
-
-```text
-1234 ppb -> 1.234 ppm
-```
-
-Si es `false`:
-
-```text
-1234
-```
-
-se envía sin convertir.
-
-## Anti-duplicados
-
-La SparkFun repite el mismo advertising varias veces.
-
-Android debe conservar:
-
-```text
-ultimoContadorEnviado
-```
-
-y enviar al servidor únicamente cuando el contador cambie.
-
-## LogicaFake
-
-La operación lógica debe mantener la misma interfaz de dominio que el backend:
-
-```text
-tipo: Text, valor: R
-    --> guardarMedicion()
-    --> Medicion
-```
-
-donde:
+Debe existir un modelo equivalente a:
 
 ```text
 Medicion = (
-    id: N,
-    fecha: Text,
-    tipo: Text,
+    nombreMicro: Texto,
+    fechaHora: Texto,
+    tipo: Texto,
     valor: R
 )
 ```
 
-Como Android no debe bloquear el hilo principal, la implementación puede entregar la `Medicion` mediante callback asíncrono.
+No utilizar `id`.
 
-Debe existir una clase:
+## Guardado
 
-```text
-Medicion.java
-```
-
-con:
+La operación lógica utilizada por Android es:
 
 ```text
-id
-fecha
-tipo
-valor
+nombreMicro: Texto, tipo: Texto, valor: R
+        --> guardarMedicion() --> Medicion
 ```
 
-## PeticionarioREST
-
-Debe realizar la petición HTTP fuera del hilo principal.
-
-Usará:
-
-```text
-POST https://fuseriv.upv.edu.es/api/medicion
-```
-
-El JSON enviado será:
+El JSON enviado al backend debe contener:
 
 ```json
 {
+  "nombre_micro": "Fabian_GTI",
   "tipo": "O3",
   "valor": 1.234
 }
 ```
 
-La respuesta correcta debe poder transformarse en un objeto `Medicion`.
+Android no debe enviar `fecha_hora`; la genera el backend.
 
-## Logcat
+La respuesta esperada contiene:
 
-Utiliza etiquetas claras:
+```json
+{
+  "nombre_micro": "Fabian_GTI",
+  "tipo": "O3",
+  "valor": 1.234,
+  "fecha_hora": "2026-10-14 12:00:00"
+}
+```
+
+## Arquitectura
+
+Mantener separadas las responsabilidades:
+
+```text
+MainActivity
+   |
+   v
+LogicaFake
+   |
+   v
+PeticionarioREST
+```
+
+`MainActivity` no debe implementar directamente las peticiones HTTP.
+
+## Logs
+
+Mantener etiquetas diferenciadas:
 
 ```text
 FABI_BLE
@@ -206,42 +147,40 @@ FABI_LOGICA
 FABI_REST
 ```
 
-Ejemplos de mensajes:
+## Pruebas
+
+Mantener o generar pruebas para:
+
+- conversiones de `Utilidades`;
+- almacenamiento de los cuatro campos de `Medicion`.
+
+## Comentarios y diseño lógico
+
+Cada función o método clave debe incluir un encabezado entre líneas discontinuas con notación lógica oficial.
+
+Ejemplos:
 
 ```text
-[SCAN]
-[IBEACON]
-[MEDICION]
-[SERVIDOR]
-[HTTP]
+resultado: ResultadoBLE --> obtenerNombreDispositivo() --> Texto
 ```
-
-## Tests
-
-Mantén tests locales de `Utilidades` para:
 
 ```text
-ppbAPpm
-bytesToIntOK
-bytesToHexString
-bytesToString
+minor: N --> obtenerValorServidor() --> R
 ```
-
-Deben poder ejecutarse desde Android Studio y producir:
 
 ```text
-4 tests passed
-BUILD SUCCESSFUL
+nombreMicro: Texto, tipo: Texto, valor: R
+        --> enviarMedicion()
 ```
 
-## Restricciones
+Evitar expresar detalles del framework Android dentro de las firmas lógicas cuando no sean parte del dominio.
 
-No accedas directamente a MySQL desde Android.
+## Resultado esperado
 
-No hagas HTTP directamente desde `MainActivity`.
+Genera únicamente los archivos necesarios dentro de:
 
-No mezcles interpretación BLE con `PeticionarioREST`.
+```text
+src/android/
+```
 
-No añadas clases innecesarias.
-
-Mantén el código sencillo y fácil de defender.
+La implementación debe corresponder exactamente con `doc/android_design.md`.

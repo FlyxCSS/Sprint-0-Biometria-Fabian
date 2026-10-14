@@ -2,9 +2,7 @@
 
 ## Diseño del Componente
 
-El componente `communication` gestiona la comunicación externa del backend.
-
-Su responsabilidad es recibir peticiones, interpretar su estructura, invocar las operaciones correspondientes de `business_logic` y construir la respuesta.
+El componente `communication` expone al exterior las operaciones del backend y delega la lógica de dominio en `business_logic`.
 
 El flujo es:
 
@@ -16,186 +14,232 @@ Communication
    |
    v
 Business Logic
+   |
+   v
+Database
 ```
 
 ### Tipos utilizados
 
 ```text
-N     = número natural
-R     = número real
-Text  = texto
+N      = número natural
+R      = número real
+Texto  = texto
 ```
 
 ```text
 MedicionEntrada = (
-    tipo: Text,
+    nombreMicro: Texto,
+    tipo: Texto,
     valor: R
 )
 ```
 
 ```text
 Medicion = (
-    id: N,
-    fecha: Text,
-    tipo: Text,
-    valor: R
+    nombreMicro: Texto,
+    tipo: Texto,
+    valor: R,
+    fechaHora: Texto
 )
 ```
 
-### responderJSON
+```text
+Respuesta = (
+    codigo: N,
+    cuerpo: Texto
+)
+```
+
+### Funciones auxiliares
 
 ```text
--------------------- responderJSON --------------------
-|
-| datos, codigo: N --> responderJSON()
-|
--------------------------------------------------------
+crearConexion() --> AccesoPersistencia
 ```
 
 Responsabilidad:
 
-Construye y envía una respuesta JSON con el código indicado.
-
-### obtenerRuta
+Obtiene el acceso a persistencia utilizado para construir la lógica de negocio.
 
 ```text
--------------------- obtenerRuta --------------------
-|
-| obtenerRuta() --> Text
-|
------------------------------------------------------
+datos, codigo: N --> responderJSON()
+```
+
+Responsabilidad:
+
+Construye la respuesta externa y finaliza el procesamiento de la petición.
+
+```text
+obtenerRuta() --> Texto
 ```
 
 Responsabilidad:
 
 Obtiene la ruta solicitada por el cliente.
 
-### guardar una medición
+### Operación de guardar
 
-Entrada:
+Interfaz lógica que se invoca en `business_logic`:
 
 ```text
-MedicionEntrada = (
-    tipo: Text,
-    valor: R
-)
+nombreMicro: Texto, tipo: Texto, valor: R
+        --> guardarMedicion() --> Medicion
+```
+
+Mensaje conceptual según la notación de protocolos utilizada en clase:
+
+```text
+GUARDAR
+<nombreMicro:Texto>
+<tipo:Texto>
+<valor:R>
+```
+
+Mapeo REST utilizado en el Sprint 0:
+
+```text
+POST /api/medicion
+```
+
+Entrada concreta:
+
+```json
+{
+  "nombre_micro": "Fabian_GTI",
+  "tipo": "O3",
+  "valor": 1.234
+}
+```
+
+Salida correcta:
+
+```json
+{
+  "nombre_micro": "Fabian_GTI",
+  "tipo": "O3",
+  "valor": 1.234,
+  "fecha_hora": "2026-10-14 12:00:00"
+}
 ```
 
 Flujo:
 
 ```text
-petición de creación
-        |
-        v
-leer datos
-        |
-        v
+recibir petición
+      |
+      v
+leer entrada
+      |
+      v
 comprobar estructura
-        |
-        v
+      |
+      v
 business_logic.guardarMedicion()
-        |
-        v
+      |
+      v
 Medicion
-        |
-        v
-respuesta JSON
+      |
+      v
+respuesta
 ```
 
-La comprobación estructural incluye:
+La comprobación estructural verifica:
 
 ```text
-entrada válida
+JSON válido
+existe nombre_micro
 existe tipo
 existe valor
 ```
 
-La validación del significado de `tipo` y `valor` corresponde a `business_logic`.
+La validación del significado de esos datos corresponde a `business_logic`.
 
-### leer la última medición
+### Operación de lectura
 
-Flujo:
+Interfaz lógica que se invoca en `business_logic`:
 
 ```text
-petición de lectura
-        |
-        v
-business_logic.leerMedicion()
-        |
-        v
-Medicion | null
-        |
-        v
-respuesta JSON
+leerMedicion() --> Medicion | Nulo
 ```
 
-### Protocolo utilizado
-
-La implementación del Sprint 0 utiliza REST sobre HTTP:
+Mensaje conceptual:
 
 ```text
-POST /api/medicion
+LEER_ULTIMA_MEDICION
+```
+
+Mapeo REST utilizado en el Sprint 0:
+
+```text
 GET /api/medicion
 ```
 
-Códigos utilizados:
+Entrada:
 
 ```text
+sin cuerpo
+```
+
+Salida correcta:
+
+```json
+{
+  "nombre_micro": "Fabian_GTI",
+  "tipo": "O3",
+  "valor": 1.234,
+  "fecha_hora": "2026-10-14 12:00:00"
+}
+```
+
+Si no existe ninguna medición, el dominio puede devolver un valor nulo.
+
+### Respuestas del protocolo
+
+La implementación utiliza los siguientes resultados:
+
+```text
+201 --> medición creada correctamente
 200 --> lectura correcta
-201 --> medición creada
 400 --> petición incorrecta
-404 --> ruta inexistente
+404 --> ruta no encontrada
 500 --> error interno
 ```
 
-### Relación con Business Logic
-
-`communication` invoca:
-
-```text
-guardarMedicion()
-leerMedicion()
-```
-
-definidas en:
-
-```text
-doc/business_logic_design.md
-```
-
-No realiza operaciones de persistencia directamente.
-
 ### Pruebas
 
-Se deben comprobar al menos:
+Las pruebas de integración deben comprobar al menos:
 
 ```text
-POST correcto
-POST con entrada inválida
-POST sin tipo
-POST sin valor
-GET correcto
-respuesta JSON válida
-ruta inexistente
+POST correcto devuelve 201
+POST devuelve la medición correcta
+POST sin nombre_micro devuelve 400
+POST con nombre_micro vacío devuelve 400
+POST sin tipo devuelve 400
+POST con tipo vacío devuelve 400
+POST sin valor devuelve 400
+POST con valor no numérico devuelve 400
+POST con JSON inválido devuelve 400
+GET correcto devuelve 200
+GET devuelve una medición con la estructura correcta
 ```
 
 ## Aclaraciones del Diseño
 
-- El componente está implementado en PHP.
-- La implementación utiliza REST sobre HTTP y JSON.
-- Las credenciales y el mecanismo concreto de conexión a persistencia son detalles de implementación.
-- `communication` crea o recibe los recursos necesarios para construir `LogicaNegocio`, sin incorporarlos a sus firmas lógicas.
-- Las reglas de validación de dominio pertenecen a `business_logic`.
-- Las operaciones de persistencia pertenecen a `business_logic`.
+- `communication` es la única capa del backend que conoce REST y los códigos HTTP.
+- La capa no contiene reglas de dominio.
+- `communication` delega el guardado y la lectura en `business_logic`.
+- La fecha y hora no se reciben en el POST; son generadas por `business_logic`.
+- `nombre_micro` debe recibirse del cliente y trasladarse como `nombreMicro` a la operación de dominio.
+- El acceso concreto a la base de datos utilizado para construir `LogicaNegocio` es un detalle de implementación.
+- La ruta pública utilizada durante el Sprint 0 es `/api/medicion`.
 
 ## Reglas Generales
 
 - Lenguaje de programación: PHP.
 - La implementación debe mantenerse en `src/communication/`.
-- Cada función clave debe incluir su diseño lógico y una breve descripción dentro de un bloque delimitado por líneas discontinuas.
-- El código debe ser sencillo, legible y autoexplicativo.
-- La comunicación debe mantenerse separada de la lógica de negocio.
-- Las respuestas deben utilizar JSON.
-- Se deben utilizar códigos de respuesta adecuados al resultado.
-- Las credenciales reales no deben publicarse en el repositorio.
-- Las operaciones principales deben disponer de pruebas automáticas reproducibles.
+- `communication` puede depender de `business_logic`.
+- `business_logic` nunca debe depender de `communication`.
+- El encabezado de cada función o método clave debe incluir su diseño lógico dentro de un bloque de comentarios delimitado por líneas discontinuas.
+- El código debe ser claro, legible y autoexplicativo.
+- Las reglas de dominio deben permanecer en `business_logic`.
+- Las operaciones externas principales deben disponer de pruebas automáticas de integración.

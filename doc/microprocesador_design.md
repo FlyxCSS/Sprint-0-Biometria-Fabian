@@ -4,18 +4,16 @@
 
 El componente `microprocesador` se ejecuta sobre una SparkFun Pro nRF52840 Mini.
 
-Su función en el Sprint 0 es generar una medición ficticia de O3, codificarla en una trama iBeacon y publicarla mediante Bluetooth Low Energy para que pueda ser recibida por la aplicación Android.
+Durante el Sprint 0 genera una medición ficticia de O3, la codifica en una trama iBeacon y la publica mediante Bluetooth Low Energy.
 
-El flujo principal es:
+El nombre BLE identifica al microprocesador y será utilizado posteriormente como `nombre_micro`.
 
 ```text
 Medidor
    |
-   | valor O3 en ppb
    v
 Publicador
    |
-   | Major + Minor
    v
 EmisoraBLE
    |
@@ -29,14 +27,13 @@ Android
 ### Tipos utilizados
 
 ```text
-N     = número natural
-Z     = número entero
-R     = número real
-B     = booleano
-Text  = texto
+N       = número natural
+Z       = número entero
+R       = número real
+Texto   = texto
+VoF     = verdadero o falso
+[N]     = vector de números naturales
 ```
-
-Los tipos de medición disponibles se representan mediante:
 
 ```text
 MedicionID = {
@@ -45,84 +42,79 @@ MedicionID = {
 }
 ```
 
-En el Sprint 0 se utiliza únicamente `O3`.
-
----
-
-### Conversión para depuración
+### Función de conversión
 
 ```text
 ppb: N --> convertirPpbAPpm() --> R
 ```
 
-Convierte el valor de O3 expresado en ppb a ppm únicamente para mostrarlo de forma más legible en el Serial Monitor.
+Responsabilidad:
+
+Convierte ppb a ppm únicamente para depuración por Serial.
 
 ```text
 ppm = ppb / 1000
 ```
 
-Esta conversión no modifica el valor transmitido en el campo `Minor`.
-
----
+El valor transmitido en `Minor` continúa siendo el valor original en ppb.
 
 ### Medidor
 
 ```text
----------------- Medidor ----------------
+--------------------------- Medidor ---------------------------
 |
-| valor_o3_prueba_ppb: N
+| valorO3PruebaPpb: N
 |
 | iniciarMedidor() -->
 |
-N <-- medirO3() <--
+| medirO3() --> N
 |
------------------------------------------
+---------------------------------------------------------------
 ```
 
-Responsabilidad:
-
-Obtiene el valor de la medición.
-
-Durante el Sprint 0 devuelve un valor ficticio de O3 expresado directamente en ppb.
-
-Firmas lógicas:
+Durante el Sprint 0:
 
 ```text
-iniciarMedidor()
-
-medirO3() --> N
+medirO3() --> 1234
 ```
-
----
 
 ### Publicador
 
-`construirMajor()` es un método estático. En la notación de la asignatura se marca mediante `--x`.
+`construirMajor()` es estático. Se marca con `--x` según la notación de clase.
 
 ```text
----------------------- Publicador ----------------------
+-------------------------- Publicador --------------------------
 |
-| beacon_uuid: [N]_16
+| beaconUUID: [N]
 | emisora: EmisoraBLE
 | rssi: Z
 |
+| obtenerNombreMicro() --> Texto
+|
 tipo: MedicionID, contador: N
-    --> construirMajor() --x
-N <--
+        --> construirMajor() --x --> N
 |
 | encenderEmisora() -->
 |
 tipo: MedicionID, valor: N, contador: N, tiempo: N
-    --> publicarMedida() --> N
+        --> publicarMedida() --> N
 |
---------------------------------------------------------
+----------------------------------------------------------------
 ```
 
 Responsabilidad:
 
-Codifica la medición y solicita su publicación mediante Bluetooth Low Energy.
+Codifica y publica la medición.
 
-El campo `Major` se construye mediante:
+Nombre utilizado:
+
+```text
+Fabian_GTI
+```
+
+`obtenerNombreMicro()` devuelve ese mismo nombre.
+
+Codificación de `Major`:
 
 ```text
 Major = (tipo << 8) | contador
@@ -131,217 +123,197 @@ Major = (tipo << 8) | contador
 Por tanto:
 
 ```text
-byte alto = tipo de medición
+byte alto = tipo
 byte bajo = contador
 ```
 
-El campo `Minor` contiene directamente el valor de la medición en ppb.
+`Minor` contiene:
+
+```text
+valor de la medición en ppb
+```
 
 Ejemplo:
 
 ```text
 tipo O3 = 11
-contador = 1
-valor = 1234 ppb
+contador = 5
+valor = 1234
 
-Major = 2817
+Major = 2821
 Minor = 1234
 ```
-
----
 
 ### EmisoraBLE
 
 ```text
---------------------- EmisoraBLE ---------------------
+-------------------------- EmisoraBLE --------------------------
 |
-| nombre_emisora: Text
-| fabricante_id: N
-| tx_power: Z
+| nombreEmisora: Texto
+| fabricanteId: N
+| txPower: Z
 |
-nombre: Text, fabricante: N, potencia: Z
-    --> EmisoraBLE() -->
+nombre: Texto, fabricante: N, potencia: Z
+        --> EmisoraBLE()
 |
 | encenderEmisora() -->
 |
-B <-- estaAnunciando() <--
+| estaAnunciando() --> VoF
 |
 | detenerAnuncio() -->
 |
-uuid: [N]_16, major: N, minor: N, tx_power: Z
-    --> emitirAnuncioIBeacon() -->
+uuid: [N], major: N, minor: N, txPower: Z
+        --> emitirAnuncioIBeacon()
 |
--------------------------------------------------------
+----------------------------------------------------------------
 ```
 
-Responsabilidad:
-
-Gestiona la emisión Bluetooth Low Energy y construye el anuncio iBeacon.
-
-Configuración utilizada:
+Configuración del Sprint 0:
 
 ```text
-Nombre BLE: Fabian_GTI
-Manufacturer ID: 0x004C
-UUID: EPSG-GTI-PROY-3A
+nombre BLE = Fabian_GTI
+Manufacturer ID = 0x004C
+UUID = EPSG-GTI-PROY-3A
+RSSI = -53
 ```
-
----
 
 ### PuertoSerie
 
 ```text
----------------- PuertoSerie ----------------
+-------------------------- PuertoSerie --------------------------
 |
-baudios: N --> PuertoSerie() -->
+baudios: N --> PuertoSerie()
 |
-tiempo_maximo: N --> esperarDisponible() -->
+tiempoMaximo: N --> esperarDisponible()
 |
-valor --> escribir() -->
+valor --> escribir()
 |
-valor: R, decimales: N --> escribirDecimal() -->
+valor: R, decimales: N --> escribirDecimal()
 |
-----------------------------------------------
+----------------------------------------------------------------
 ```
 
 Responsabilidad:
 
-Muestra información de depuración mediante Serial Monitor.
+Muestra información de depuración.
 
-El puerto serie no es necesario para que el sistema funcione. Al arrancar se espera únicamente un tiempo máximo y después la ejecución continúa aunque no exista un ordenador conectado.
+La ejecución continúa aunque no exista Serial Monitor.
 
-La salida permite comprobar:
+La información mostrada incluye:
 
 ```text
-número de loop
-tipo de medición
-valor de O3 en ppm
+nombre del microprocesador
+tipo
 contador
+valor O3
 Major
 Minor
-intervalo de publicación
+intervalo
 ```
-
-El valor obtenido desde `Medidor` está en ppb. La conversión a ppm se utiliza únicamente para mostrarlo en Serial Monitor y no modifica el valor transmitido.
-
----
 
 ### LED
 
 ```text
----------------- LED ----------------
+------------------------------ LED ------------------------------
 |
-| numero_led: Z
-| encendido: B
+| numeroLed: Z
+| encendido: VoF
 |
-numero: Z --> LED() -->
+numero: Z --> LED()
 |
 | encender() -->
 |
 | apagar() -->
 |
-| alternar() -->
+tiempo: N --> brillar()
 |
-tiempo: N --> brillar() -->
-|
--------------------------------------
+----------------------------------------------------------------
 ```
 
 Responsabilidad:
 
-Proporciona una indicación visual de que el microprocesador continúa ejecutándose.
+Indica visualmente el inicio de una nueva medición.
 
-El LED realiza un destello al comenzar cada nueva medición.
-
----
-
-### Programa principal
-
-La ejecución comienza en `setup()` y continúa mediante `loop()`:
+### Ciclo principal
 
 ```text
 setup()
-   |
-   +--> esperar temporalmente al Serial Monitor
-   +--> iniciar BLE
-   +--> iniciar Medidor
-   |
-   v
-loop()
-   |
-   +--> destello LED
-   +--> medir O3 en ppb
-   +--> convertir ppb a ppm para Serial
-   +--> obtener contador
-   +--> construir Major
-   +--> mostrar datos por Serial
-   +--> publicar iBeacon
-   +--> incrementar número de loop
 ```
 
-La trama enviada utiliza:
+Inicializa:
 
 ```text
-Major = tipo de medición + contador
-Minor = valor de O3 en ppb
+PuertoSerie
+Publicador
+Medidor
 ```
 
-Un mismo anuncio BLE puede recibirse varias veces en Android.
+```text
+loop()
+```
 
-El contador incluido en el byte bajo de `Major` permite distinguir una nueva medición de las repeticiones del mismo anuncio.
+Flujo:
 
-El contador enviado ocupa un byte, por lo que puede tomar valores entre `0` y `255`.
+```text
+medir O3
+   |
+   v
+obtener contador
+   |
+   v
+construir Major
+   |
+   v
+mostrar depuración
+   |
+   v
+publicar iBeacon
+   |
+   v
+incrementar contador
+```
 
----
+El intervalo del Sprint 0 es:
 
-### Prueba automática
+```text
+5000 ms
+```
 
-La función `construirMajor()` dispone de una prueba automática mediante `static_assert`.
+### Pruebas
 
-Se comprueba:
+Debe mantenerse una prueba automática de compilación para la codificación de `Major`.
+
+Caso:
 
 ```text
 O3 = 11
 contador = 5
-
-Major esperado = 2821
 ```
 
-La comprobación utilizada es:
+Resultado esperado:
 
 ```text
-Publicador::construirMajor(O3, 5) == 2821
+Major = 2821
 ```
-
-Si la función deja de producir ese resultado, la compilación falla.
-
-La prueba no necesita hardware y se ejecuta automáticamente durante la compilación.
-
----
 
 ## Aclaraciones del Diseño
 
-- La medición ficticia de O3 se introduce directamente en ppb.
-- El campo `Minor` contiene exactamente el valor de la medición en ppb.
-- La conversión de ppb a ppm se utiliza únicamente para mostrar el dato de forma legible en Serial Monitor.
-- `O3` es el tipo utilizado actualmente.
-- `TEMPERATURA` queda definido para permitir futuras ampliaciones.
-- El campo `Major` contiene el tipo de medición en su byte alto y el contador en su byte bajo.
-- El contador permite diferenciar nuevas mediciones de anuncios BLE repetidos.
-- `construirMajor()` es un método estático y no depende del estado de un objeto `Publicador`.
-- El microprocesador funciona aunque el Serial Monitor no esté conectado.
-- El LED permite comprobar visualmente que la placa continúa ejecutándose.
-- La SparkFun se comunica directamente únicamente con Android mediante Bluetooth Low Energy.
-- La SparkFun no accede directamente al servidor REST, la lógica de negocio ni la base de datos.
+- El microprocesador no se comunica directamente con el backend.
+- `Fabian_GTI` es el nombre BLE y también identifica conceptualmente el origen de la medición.
+- Android obtiene ese nombre del anuncio BLE y lo envía posteriormente como `nombre_micro`.
+- `Minor` contiene el valor de O3 en ppb.
+- La conversión a ppm se utiliza únicamente para depuración en el microprocesador.
+- El contador ocupa el byte bajo de `Major`.
+- El tipo ocupa el byte alto de `Major`.
+- El Serial Monitor es opcional.
+- Durante el Sprint 0 el medidor devuelve un valor ficticio.
 
 ## Reglas Generales
 
-- Lenguaje de programación: C++ con Arduino y la librería Adafruit Bluefruit nRF52.
-- La implementación debe mantenerse en `src/microprocesador/` y corresponder con este diseño.
-- Cada fichero debe incluir una cabecera con nombre, descripción, fecha, autor, aportación y copyright.
-- Cada función o método debe incluir su diseño lógico y una breve descripción dentro de un bloque de comentarios delimitado por líneas discontinuas.
-- El código debe ser claro y autoexplicativo, evitando comentarios innecesarios.
-- Las responsabilidades de medición, publicación BLE, comunicación Bluetooth, depuración y señalización visual deben mantenerse separadas.
-- Las funciones de lógica que puedan probarse sin hardware deben disponer de pruebas automáticas reproducibles cuando resulte adecuado.
-- Los métodos estáticos deben identificarse en la notación de diseño mediante `--x`.
-- El funcionamiento del microprocesador no debe depender de que exista un ordenador o Serial Monitor conectado.
+- Lenguaje de programación: C++ para Arduino.
+- La implementación debe mantenerse en `src/microprocesador/`.
+- Los nombres de funciones, tipos y parámetros del diseño deben seguir la notación oficial de la asignatura.
+- El encabezado de cada función o método clave debe incluir su diseño lógico dentro de un bloque de comentarios delimitado por líneas discontinuas.
+- El código debe ser claro, legible y autoexplicativo.
+- La comunicación del microprocesador debe realizarse mediante BLE/iBeacon.
+- Las operaciones clave deben disponer de pruebas automáticas cuando sea posible.

@@ -2,9 +2,9 @@
 
 ## Diseño del Componente
 
-El componente `android` recibe mediante Bluetooth Low Energy la medición publicada por la SparkFun, interpreta la trama iBeacon y solicita al backend que almacene las mediciones nuevas.
+El componente `android` recibe anuncios BLE/iBeacon, interpreta las mediciones nuevas y solicita su almacenamiento mediante el backend.
 
-El flujo es:
+El nombre del microprocesador enviado al backend se obtiene del anuncio BLE recibido.
 
 ```text
 SparkFun
@@ -26,78 +26,102 @@ Communication
 ### Tipos utilizados
 
 ```text
-N     = número natural
-Z     = número entero
-R     = número real
-B     = booleano
-Text  = texto
-Bytes = secuencia de bytes
+N       = número natural
+Z       = número entero
+R       = número real
+Texto   = texto
+VoF     = verdadero o falso
+[N]     = vector de números naturales
 ```
 
 ```text
 ResultadoBLE = (
-    nombre: Text,
-    direccion: Text,
+    nombre: Texto,
+    direccion: Texto,
     rssi: Z,
-    datos: Bytes
+    datos: [N]
 )
 ```
 
 ```text
 Medicion = (
-    id: N,
-    fecha: Text,
-    tipo: Text,
+    nombreMicro: Texto,
+    fechaHora: Texto,
+    tipo: Texto,
     valor: R
+)
+```
+
+```text
+TramaIBeaconDatos = (
+    uuid: [N],
+    major: [N],
+    minor: [N],
+    txPower: Z
 )
 ```
 
 ### MainActivity
 
 ```text
---------------------------- MainActivity ---------------------------
+----------------------------- MainActivity -----------------------------
 |
-| nombre_beacon: Text
-| enviar_valor_en_ppm: B
-| ultimo_contador_enviado: Z
+| nombreBeacon: Texto
+| enviarValorEnPpm: VoF
+| ultimoContadorEnviado: Z
 |
-B <-- tengoPermisosBluetooth() <--
+| tengoPermisosBluetooth() --> VoF
 |
 | pedirPermisosBluetooth() -->
 |
 | inicializarBluetooth() -->
 |
-B <-- escanerPreparado() <--
+| escanerPreparado() --> VoF
 |
 | buscarTodosLosDispositivosBTLE() -->
 |
-resultado: ResultadoBLE --> mostrarDispositivo() -->
+resultado: ResultadoBLE --> mostrarDispositivo()
 |
-resultado: ResultadoBLE --> obtenerNombreDispositivo() --> Text
+resultado: ResultadoBLE --> obtenerNombreDispositivo() --> Texto
 |
 | buscarNuestroDispositivoBTLE() -->
 |
-tipo: N --> obtenerNombreTipoMedicion() --> Text
+tipo: N --> obtenerNombreTipoMedicion() --> Texto
 |
 minor: N --> obtenerValorServidor() --> R
 |
-resultado: ResultadoBLE --> procesarResultadoBLE() -->
+resultado: ResultadoBLE --> procesarResultadoBLE()
 |
-trama: TramaIBeacon, major: N, minor: N, tipo: Text,
-tipoId: N, contador: N, valor: R --> mostrarIBeacon() -->
+nombreMicro: Texto, trama: TramaIBeaconDatos,
+major: N, minor: N, tipo: Texto, tipoId: N,
+contador: N, valor: R
+        --> mostrarIBeacon()
 |
-tipo: Text, valor: R --> enviarMedicion() -->
+nombreMicro: Texto, tipo: Texto, valor: R
+        --> enviarMedicion()
 |
 | detenerBusquedaDispositivosBTLE() -->
 |
---------------------------------------------------------------------
+eventoVista --> botonBuscarTodosLosDispositivosBTLEPulsado()
+|
+eventoVista --> botonBuscarNuestroDispositivoBTLEPulsado()
+|
+eventoVista --> botonDetenerBusquedaDispositivosBTLEPulsado()
+|
+estadoInicial --> onCreate()
+|
+resultadoPermisos --> onRequestPermissionsResult()
+|
+| onDestroy() -->
+|
+-------------------------------------------------------------------------
 ```
 
 Responsabilidad:
 
-Coordina el escaneo BLE y el procesamiento de las mediciones.
+Coordina permisos, escaneo BLE, decodificación y envío de mediciones.
 
-No realiza directamente la comunicación HTTP.
+No implementa directamente las operaciones HTTP.
 
 ### Interpretación de Major
 
@@ -113,109 +137,167 @@ Tipos conocidos:
 12 --> TEMPERATURA
 ```
 
-El contador permite ignorar repeticiones del mismo anuncio.
+El contador evita reenviar repetidamente el mismo anuncio.
 
-### Conversión de Minor
+### Interpretación de Minor
 
-Minor contiene la medición en ppb.
+`Minor` contiene el valor en ppb.
+
+Si:
+
+```text
+enviarValorEnPpm = VERDADERO
+```
+
+entonces:
 
 ```text
 1234 ppb --> 1.234 ppm
 ```
 
-si:
+antes de solicitar el almacenamiento.
+
+### Nombre del microprocesador
+
+La constante:
 
 ```text
-ENVIAR_VALOR_EN_PPM = true
+Fabian_GTI
+```
+
+se utiliza para filtrar el dispositivo BLE buscado.
+
+Sin embargo, el valor enviado al backend se obtiene del resultado BLE:
+
+```text
+ResultadoBLE --> obtenerNombreDispositivo() --> Texto
+```
+
+y después:
+
+```text
+nombreMicro: Texto, tipo: Texto, valor: R
+        --> enviarMedicion()
 ```
 
 ### TramaIBeacon
 
 ```text
----------------- TramaIBeacon ----------------
+-------------------------- TramaIBeacon --------------------------
 |
-bytes: Bytes --> TramaIBeacon()
+bytes: [N] --> TramaIBeacon()
 |
-getUUID() --> Bytes
+| getUUID() --> [N]
 |
-getMajor() --> Bytes
+| getMajor() --> [N]
 |
-getMinor() --> Bytes
+| getMinor() --> [N]
 |
-getTxPower() --> Z
+| getTxPower() --> Z
 |
------------------------------------------------
+------------------------------------------------------------------
 ```
 
 Responsabilidad:
 
-Representa y extrae los campos utilizados de una trama iBeacon.
+Representa los campos necesarios de una trama iBeacon.
 
 ### Utilidades
 
+Los métodos son estáticos y se marcan con `--x`.
+
 ```text
----------------- Utilidades ----------------
+---------------------------- Utilidades ----------------------------
 |
-bytes: Bytes --> bytesToString() --x --> Text
+bytes: [N] --> bytesToString() --x --> Texto
 |
-bytes: Bytes --> bytesToIntOK() --x --> N
+bytes: [N] --> bytesToIntOK() --x --> N
 |
-bytes: Bytes --> bytesToHexString() --x --> Text
+bytes: [N] --> bytesToHexString() --x --> Texto
 |
 ppb: N --> ppbAPpm() --x --> R
 |
----------------------------------------------
+-------------------------------------------------------------------
 ```
-
-### LogicaFake
-
-```text
----------------- LogicaFake ----------------
-|
-tipo: Text, valor: R
-    --> guardarMedicion()
-    --> Medicion
-|
----------------------------------------------
-```
-
-Responsabilidad:
-
-Presenta en Android la operación de dominio `guardarMedicion()`.
-
-La implementación entrega el resultado de forma asíncrona para no bloquear la aplicación.
 
 ### Medicion
 
 ```text
----------------- Medicion ----------------
+----------------------------- Medicion -----------------------------
 |
-id: N, fecha: Text, tipo: Text, valor: R
-    --> Medicion()
+| nombreMicro: Texto
+| fechaHora: Texto
+| tipo: Texto
+| valor: R
 |
-getId() --> N
+nombreMicro: Texto, fechaHora: Texto, tipo: Texto, valor: R
+        --> Medicion()
 |
-getFecha() --> Text
+| getNombreMicro() --> Texto
 |
-getTipo() --> Text
+| getFechaHora() --> Texto
 |
-getValor() --> R
+| getTipo() --> Texto
 |
--------------------------------------------
+| getValor() --> R
+|
+--------------------------------------------------------------------
 ```
 
-### PeticionarioREST
+### LogicaFake
+
+La forma lógica de la operación no expresa el mecanismo asíncrono utilizado por Java.
+
+```text
+---------------------------- LogicaFake ----------------------------
+|
+nombreMicro: Texto, tipo: Texto, valor: R
+        --> guardarMedicion() --> Medicion
+|
+--------------------------------------------------------------------
+```
 
 Responsabilidad:
 
-Encapsula la comunicación con el backend.
+Presenta a Android la operación de almacenamiento utilizando datos de dominio.
 
-La mecánica concreta de ejecución asíncrona pertenece a la implementación y no forma parte de la interfaz lógica del dominio.
+El objeto enviado contiene conceptualmente:
+
+```text
+nombreMicro
+tipo
+valor
+```
+
+La fecha y hora son generadas por el backend.
+
+### PeticionarioREST
+
+`PeticionarioREST` encapsula el mecanismo concreto de comunicación remota.
+
+Diseño conceptual:
+
+```text
+------------------------- PeticionarioREST -------------------------
+|
+peticion --> hacerPeticionREST() --> respuesta
+|
+| doInBackground()
+|
+respuesta --> onPostExecute()
+|
+--------------------------------------------------------------------
+```
+
+Los detalles de hilos, callbacks y objetos de Android pertenecen a la implementación.
 
 ### Flujo de una medición
 
 ```text
-Resultado BLE
+ResultadoBLE
+     |
+     v
+obtener nombreMicro
      |
      v
 TramaIBeacon
@@ -230,7 +312,11 @@ tipo + contador + valor
 comprobar duplicado
      |
      v
-LogicaFake.guardarMedicion()
+LogicaFake.guardarMedicion(
+    nombreMicro,
+    tipo,
+    valor
+)
      |
      v
 Medicion
@@ -238,36 +324,39 @@ Medicion
 
 ### Pruebas
 
-Los tests de `Utilidades` comprueban:
+Las pruebas automáticas deben comprobar al menos:
 
 ```text
-ppbAPpm(1234) --> 1.234
-bytesToIntOK(0x0B, 0x05) --> 2821
-bytesToHexString(0x0B, 0x05) --> "0b:05"
-bytesToString(65, 66, 67) --> "ABC"
+conversiones de Utilidades
+almacenamiento correcto de los campos de Medicion
+```
+
+En la versión actual:
+
+```text
+UtilidadesTest --> 4 pruebas
+MedicionTest --> 1 prueba
 ```
 
 ## Aclaraciones del Diseño
 
-- La aplicación está implementada en Java con Android Studio.
-- `MainActivity` coordina el flujo BLE.
-- `TramaIBeacon` representa los datos del beacon.
-- `Utilidades` contiene conversiones reutilizables.
-- `LogicaFake` actúa como proxy de la lógica de negocio.
-- `PeticionarioREST` encapsula la comunicación.
-- `Medicion` representa el resultado de `guardarMedicion()`.
-- La implementación utiliza callbacks para entregar resultados asíncronos.
-- Los tipos del SDK de Android pertenecen a la implementación, no a las firmas lógicas anteriores.
-- El contador evita almacenar varias veces el mismo anuncio BLE.
+- La aplicación está implementada en Java.
+- El nombre del microprocesador enviado al backend es el recibido por BLE.
+- `Fabian_GTI` continúa utilizándose como filtro de búsqueda durante el Sprint 0.
+- Android no genera `fechaHora`.
+- Android convierte el valor a ppm antes de enviarlo cuando la configuración correspondiente está activa.
+- `MainActivity` coordina BLE y utiliza `LogicaFake` para guardar la medición.
+- `PeticionarioREST` encapsula la comunicación remota.
+- La notación lógica no representa callbacks ni detalles concretos del framework Android.
+- Las operaciones de dominio utilizan `Texto`, `N`, `Z`, `R` y `VoF`.
 
 ## Reglas Generales
 
-- Lenguaje de programación: Java.
+- Lenguaje de programación: Java para Android.
 - La implementación debe mantenerse en `src/android/`.
-- Cada método clave debe incluir su diseño lógico y una breve descripción dentro de un bloque delimitado por líneas discontinuas.
-- El código debe ser claro y autoexplicativo.
-- La interpretación BLE, la lógica fake y la comunicación deben mantenerse separadas.
-- `MainActivity` no debe construir directamente peticiones HTTP.
-- La aplicación no debe acceder directamente a la base de datos.
-- Las funciones independientes del sistema Android deben disponer de pruebas automáticas cuando resulte adecuado.
-- Los métodos estáticos deben identificarse mediante `--x`.
+- Los nombres y tipos del diseño deben seguir la notación oficial utilizada en clase.
+- El encabezado de cada función o método clave debe incluir su diseño lógico dentro de un bloque de comentarios delimitado por líneas discontinuas.
+- El código debe ser claro, legible y autoexplicativo.
+- La lógica BLE, la lógica fake y el mecanismo REST deben mantenerse separados por responsabilidad.
+- Los datos enviados al backend deben proceder de la medición realmente recibida.
+- Las operaciones principales deben disponer de pruebas automáticas reproducibles.

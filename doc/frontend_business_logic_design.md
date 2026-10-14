@@ -1,123 +1,67 @@
-# Diseño de la Lógica de Negocio del Frontend
+# Diseño de Frontend Business Logic
 
 ## Diseño del Componente
 
-El componente `frontend_business_logic` actúa como proxy de la lógica de negocio utilizada por la interfaz web.
+El componente `frontend_business_logic` es el proxy de lógica de negocio utilizado por la interfaz web.
 
-Su responsabilidad es ofrecer a la GUI operaciones de dominio sencillas y encapsular los detalles de comunicación con el backend.
-
-La GUI no debe realizar directamente peticiones HTTP.
+La GUI utiliza este componente y no conoce el mecanismo de comunicación empleado para obtener los datos.
 
 El flujo es:
 
 ```text
-GUI
+Web
  |
  v
 Frontend Business Logic
- |
- v
-HTTP / REST
  |
  v
 Communication
  |
  v
 Business Logic
- |
- v
-Database
 ```
 
----
-
-### Operaciones
-
-La interfaz web necesita únicamente recuperar la última medición almacenada.
+### Tipos utilizados
 
 ```text
-leerMedicion() --> Medicion | null
+R      = número real
+Texto  = texto
 ```
-
-Donde:
 
 ```text
 Medicion = (
-    id: N,
-    fecha: Text,
-    tipo: Text,
-    valor: R
+    nombreMicro: Texto,
+    tipo: Texto,
+    valor: R,
+    fechaHora: Texto
 )
 ```
 
----
+```text
+Nulo = {NULO}
+```
 
-### leerMedicion
+### LogicaFake
+
+La interfaz lógica consumida por la GUI debe ser idéntica a la operación equivalente del backend:
 
 ```text
-leerMedicion() --> Medicion | null
+-------------------------- LogicaFake --------------------------
+|
+|       leerMedicion() --> Medicion | Nulo
+|
+---------------------------------------------------------------
+```
+
+Diseño lógico:
+
+```text
+leerMedicion() --> Medicion | Nulo
 ```
 
 Responsabilidad:
 
-Solicita al backend la última medición disponible y devuelve el resultado a la GUI.
-
-La GUI únicamente conoce esta operación y no conoce:
-
-```text
-fetch()
-GET
-HTTP
-/api/medicion
-códigos de estado
-cabeceras HTTP
-```
-
-Estos detalles pertenecen a la implementación del proxy.
-
----
-
-### Relación con la lógica de negocio del backend
-
-La operación:
-
-```text
-leerMedicion() --> Medicion | null
-```
-
-mantiene la misma interfaz lógica que la operación equivalente definida en:
-
-```text
-business_logic_design.md
-```
-
-El frontend utiliza únicamente el subconjunto de operaciones de negocio necesarias para la interfaz gráfica.
-
-En el Sprint 0 la web solo necesita:
-
-```text
-leerMedicion()
-```
-
-No necesita:
-
-```text
-guardarMedicion()
-```
-
----
-
-### Implementación del proxy
-
-La implementación puede utilizar comunicación HTTP para acceder al backend.
-
-En este Sprint se realiza mediante:
-
-```text
-GET /api/medicion
-```
-
-La comunicación HTTP queda encapsulada dentro del componente `frontend_business_logic`.
+Obtiene la última medición para la interfaz web.
 
 La GUI recibe únicamente:
 
@@ -128,48 +72,84 @@ Medicion
 o:
 
 ```text
-null
+NULO
 ```
 
----
+Los detalles utilizados internamente por el proxy no forman parte de la firma lógica.
+
+### Correspondencia con business_logic
+
+En `business_logic_design.md` existe:
+
+```text
+leerMedicion() --> Medicion | Nulo
+```
+
+En este componente existe exactamente:
+
+```text
+leerMedicion() --> Medicion | Nulo
+```
+
+Por tanto, la operación mantiene:
+
+```text
+mismo nombre
+mismos parámetros
+mismo tipo de retorno
+```
+
+El frontend implementa únicamente el subconjunto que necesita la web.
+
+No necesita exponer:
+
+```text
+guardarMedicion()
+```
+
+### Implementación del proxy
+
+Durante el Sprint 0, la implementación encapsula la lectura remota mediante:
+
+```text
+GET /api/medicion
+```
+
+Este detalle pertenece a la implementación del proxy.
+
+La GUI nunca debe realizar directamente la petición.
 
 ### Pruebas
 
-Se deben comprobar automáticamente al menos los siguientes casos:
+Las pruebas automáticas deben comprobar al menos:
 
 ```text
 leer una medición correcta
-
-utilizar el endpoint /api/medicion
-
-aceptar una respuesta null
-
-detectar errores HTTP
+comprobar nombreMicro
+comprobar tipo
+comprobar valor
+comprobar fechaHora
+utilizar /api/medicion
+aceptar NULO
+detectar un error de comunicación
 ```
-
-Las pruebas deben centrarse en el comportamiento del proxy y pueden simular la función de comunicación utilizada.
-
----
 
 ## Aclaraciones del Diseño
 
-- El componente está implementado en JavaScript.
-- Actúa como proxy o lógica fake de la lógica de negocio del backend.
-- La GUI no realiza directamente peticiones HTTP.
-- `leerMedicion()` mantiene la misma firma lógica que su equivalente del backend.
-- El frontend solo implementa el subconjunto de operaciones que necesita la GUI.
-- Los detalles de REST se encuentran encapsulados dentro de este componente.
-- El componente devuelve datos de dominio a la GUI.
-
----
+- El componente actúa como proxy o lógica fake del backend.
+- La interfaz de dominio presentada a la GUI es `leerMedicion() --> Medicion | Nulo`.
+- La implementación puede utilizar comunicación remota de forma interna.
+- `nombre_micro` y `fecha_hora` recibidos externamente se representan en el dominio como `nombreMicro` y `fechaHora`.
+- La GUI no conoce rutas, códigos de estado ni llamadas `fetch()`.
+- Solo se replica el subconjunto de la lógica de negocio necesario para la interfaz web.
 
 ## Reglas Generales
 
 - Lenguaje de programación: JavaScript.
 - La implementación debe mantenerse en `src/frontend_business_logic/`.
-- Cada función o método debe incluir su diseño lógico y una breve descripción dentro de un bloque delimitado por líneas discontinuas.
-- El código debe ser sencillo, claro y autoexplicativo.
-- La GUI no debe contener llamadas directas a `fetch()`.
-- Los detalles HTTP deben permanecer encapsulados en este componente.
-- La interfaz lógica debe ser compatible con la operación equivalente de `business_logic`.
+- La interfaz lógica debe mantener paridad con la operación equivalente definida en `business_logic_design.md`.
+- La GUI no debe contener comunicación HTTP directa.
+- El encabezado de cada función o método clave debe incluir su diseño lógico dentro de un bloque de comentarios delimitado por líneas discontinuas.
+- El código debe ser claro, legible y autoexplicativo.
+- Los detalles de comunicación deben permanecer encapsulados dentro de este componente.
 - Las operaciones principales deben disponer de pruebas automáticas reproducibles.

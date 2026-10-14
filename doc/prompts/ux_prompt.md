@@ -1,123 +1,64 @@
-# Prompt para generar la UX / GUI Web
+# Prompt — UX Web
 
-Quiero que generes o adaptes únicamente la interfaz web del Sprint 0.
-
-## Arquitectura
-
-La GUI debe respetar:
-
-```text
-Web
- ↓
-Frontend Business Logic
- ↓
-Communication
- ↓
-Business Logic
- ↓
-Database
-```
-
-Este prompt afecta únicamente a:
-
-```text
-doc/web_design.md
-src/web/
-```
+Diseña una interfaz visual sencilla para el Sprint 0 de monitorización ambiental.
 
 ## Objetivo
 
-Crear una interfaz web sencilla con:
+La pantalla debe permitir visualizar claramente la última medición recibida.
+
+## Información mostrada
+
+Debe incluir:
 
 ```text
-HTML
-CSS
-JavaScript
+Micro
+Tipo
+Valor
+Fecha
+Hora
 ```
 
-que muestre la última medición almacenada.
-
-## Estructura
-
-La GUI debe mantenerse en:
+Ejemplo:
 
 ```text
-src/web/
-├── index.html
-├── css/
-│   └── estilos.css
-└── js/
-    └── app.js
+Micro: Fabian_GTI
+Tipo: O3
+Valor: 1.234
+Fecha: 2026-10-14
+Hora: 13:31:35
 ```
 
-La lógica de comunicación NO pertenece a esta carpeta.
+## Estructura visual
 
-Se encuentra en:
+La página debe contener:
 
-```text
-src/frontend_business_logic/LogicaFake.js
-```
+- título `Calidad del Aire`;
+- subtítulo `Monitorización ambiental`;
+- tarjeta principal `Última medición`;
+- campos claramente diferenciados;
+- botón `Actualizar`;
+- texto indicando cuándo se actualizó;
+- mensaje de estado.
 
-## Datos mostrados
+## Estilo
 
-La página debe mostrar:
+Debe ser:
 
-```text
-tipo
-valor
-fecha
-hora
-momento de la última actualización
-estado de la operación
-```
+- sencillo;
+- limpio;
+- legible;
+- académico;
+- sin decoración excesiva;
+- fácil de explicar durante la demo.
 
-También debe tener un botón para actualizar manualmente la medición.
+No hace falta crear dashboards complejos, gráficas, autenticación ni navegación adicional.
 
-## Regla principal
+## Restricción funcional
 
-La GUI nunca debe hacer directamente:
+Este prompt describe únicamente la UX.
 
-```javascript
-fetch()
-```
+La comunicación con el backend debe quedar fuera de la GUI y realizarse mediante el componente `frontend_business_logic`.
 
-Debe solicitar la información mediante:
+## Resultado esperado
 
-```text
-leerMedicion()
-```
-
-del componente:
-
-```text
-frontend_business_logic
-```
-
-## Comportamiento
-
-`app.js` puede incluir funciones como:
-
-```text
-inicializarInterfaz()
-cargarMedicion()
-mostrarMedicion()
-actualizarTextoUltimaActualizacion()
-```
-
-`actualizarTextoUltimaActualizacion()` solo debe cambiar el texto visual y no realizar nuevas peticiones al servidor.
-
-## Diseño visual
-
-Quiero una interfaz sencilla y fácil de entender.
-
-No es necesario un diseño complejo.
-
-Debe ser adecuada para demostrar el Sprint 0 y mostrar claramente la última medición recibida.
-
-## Restricciones
-
-No pongas lógica de negocio en la GUI.
-
-No pongas llamadas HTTP directas en `app.js`.
-
-No dupliques `LogicaFake.js` dentro de `src/web/`.
+Proponer una interfaz coherente con `doc/web_design.md` y con los datos reales del Sprint 0.

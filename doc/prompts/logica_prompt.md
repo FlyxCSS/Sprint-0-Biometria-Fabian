@@ -1,156 +1,129 @@
-# Prompt para generar Business Logic
+# Prompt — Business Logic
 
-Quiero que generes o adaptes únicamente la lógica de negocio del backend para mi Sprint 0 del proyecto de Biometría y Medio Ambiente.
+Genera el componente `business_logic` del Sprint 0 a partir de `doc/business_logic_design.md`.
 
-## Arquitectura
+## Lenguaje
 
-La arquitectura del backend es:
+PHP.
 
-```text
-Communication
-      ↓
-Business Logic
-      ↓
-Database
-```
+## Restricción arquitectónica principal
 
-Este prompt afecta únicamente a:
+Este componente debe ser 100 % independiente de la capa de comunicación.
 
-```text
-doc/business_logic_design.md
-src/business_logic/
-```
+No debe contener referencias a:
 
-## Objetivo
+- HTTP;
+- GET o POST;
+- rutas;
+- códigos 200, 201, 400, 404 o 500;
+- cabeceras;
+- JSON como concepto de transporte;
+- `communication`.
 
-Implementar en PHP la clase:
+Debe trabajar únicamente con datos de dominio y persistencia.
 
-```text
-LogicaNegocio
-```
-
-con las operaciones:
-
-```text
-guardarMedicion()
-leerMedicion()
-```
-
-## Regla principal
-
-La lógica de negocio debe ser 100 % independiente de la comunicación.
-
-No debe conocer:
-
-```text
-HTTP
-GET
-POST
-rutas
-códigos 200/201/400/404/500
-cabeceras HTTP
-sockets
-JSON de transporte
-```
-
-Puede utilizar PDO y consultas SQL como detalle de implementación para acceder a la base de datos.
-
-## Entidad de dominio
-
-La medición se representa como:
+## Tipo de dominio
 
 ```text
 Medicion = (
-    id: N,
-    fecha: Text,
-    tipo: Text,
-    valor: R
+    nombreMicro: Texto,
+    tipo: Texto,
+    valor: R,
+    fechaHora: Texto
 )
 ```
 
-La estructura debe coincidir con:
+## Operación de guardado
+
+Diseño lógico:
 
 ```text
-doc/database_design.md
-```
-
-## guardarMedicion
-
-Firma lógica:
-
-```text
-tipo: Text, valor: R
-    --> guardarMedicion()
-    --> Medicion
+nombreMicro: Texto, tipo: Texto, valor: R
+        --> guardarMedicion() --> Medicion
 ```
 
 Debe:
 
-1. comprobar que `tipo` no está vacío;
-2. comprobar que `valor` es numérico;
-3. generar la fecha en el backend;
-4. utilizar la zona horaria `Europe/Madrid`;
-5. usar el formato `Y-m-d H:i:s`;
-6. insertar la medición mediante consulta preparada;
-7. devolver la medición creada con `id`, `fecha`, `tipo` y `valor`.
+1. eliminar espacios sobrantes de `nombreMicro` y `tipo`;
+2. rechazar `nombreMicro` vacío;
+3. rechazar `tipo` vacío;
+4. rechazar un valor no numérico;
+5. generar `fechaHora` en el backend;
+6. almacenar la medición;
+7. devolver la medición almacenada.
 
-## leerMedicion
-
-Firma lógica:
+Usar:
 
 ```text
-leerMedicion() --> Medicion | null
+Europe/Madrid
+Y-m-d H:i:s
 ```
 
-Debe recuperar únicamente la última medición almacenada.
-
-Si no existen mediciones debe devolver:
+La tabla es:
 
 ```text
-null
+Mediciones
 ```
 
-## Archivos
-
-Genera o adapta:
+con columnas:
 
 ```text
-src/business_logic/LogicaNegocio.php
-src/business_logic/LogicaNegocioTest.php
+nombre_micro
+tipo
+valor
+fecha_hora
 ```
 
-## Tests
+## Operación de lectura
 
-Los tests deben comprobar al menos:
+Diseño lógico:
 
 ```text
-guardar una medición válida
-rechazar un tipo vacío
-rechazar un valor no numérico
-recuperar la última medición
-devolver null si no existen mediciones
+leerMedicion() --> Medicion | Nulo
 ```
 
-Deben poder ejecutarse manualmente con:
+Debe recuperar la última medición con:
 
-```bash
-php LogicaNegocioTest.php
+```text
+ORDER BY fecha_hora DESC, nombre_micro ASC
+LIMIT 1
 ```
 
-## Comentarios y diseño lógico
+Si no existen mediciones debe devolver `null`.
 
-Cada función o método clave debe incluir:
+## Pruebas automáticas
 
-- diseño lógico;
-- breve descripción;
-- bloque delimitado por líneas discontinuas.
+Crear pruebas para:
 
-El código debe ser sencillo, claro y fácil de explicar.
+- guardar una medición válida;
+- rechazar `nombreMicro` vacío;
+- rechazar `tipo` vacío;
+- rechazar valor no numérico;
+- recuperar la última medición;
+- permitir la misma `fechaHora` para micros diferentes;
+- devolver `null` cuando la tabla está vacía.
 
-## Restricciones
+## Comentarios y notación
 
-No mezcles HTTP con la lógica de negocio.
+Cada método clave debe incluir su diseño lógico entre líneas discontinuas.
 
-No accedas directamente desde esta clase a Android o a la GUI.
+Ejemplo:
 
-No cambies la estructura de la tabla `Mediciones`.
+```text
+// ------------------------------------------------------------
+// nombreMicro: Texto, tipo: Texto, valor: R
+//      --> guardarMedicion() --> Medicion
+// ------------------------------------------------------------
+```
+
+No utilizar tipos concretos de transporte en la notación lógica.
+
+## Resultado esperado
+
+Generar únicamente dentro de:
+
+```text
+src/business_logic/
+```
+
+La implementación debe corresponder exactamente con `doc/business_logic_design.md` y `doc/database_design.md`.

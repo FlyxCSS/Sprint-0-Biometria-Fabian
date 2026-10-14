@@ -1,54 +1,82 @@
-# Prompt para generar la base de datos
+# Prompt — Base de Datos
 
-Quiero que generes o adaptes únicamente el componente de base de datos de mi Sprint 0 del proyecto de Biometría y Medio Ambiente.
+Genera la definición SQL del componente `database` a partir de `doc/database_design.md`.
 
-## Arquitectura
+## Tecnología
 
-La arquitectura actual es:
+Usar SQL compatible con MySQL/MariaDB.
 
-```text
-SparkFun
-   ↓
-Android
-   ↓
-Communication
-   ↓
-Business Logic
-   ↓
-Database
-   ↓
-Frontend Business Logic
-   ↓
-Web
-```
-
-Este prompt afecta únicamente a:
+## Tabla requerida
 
 ```text
-doc/database_design.md
-src/database/
+TABLE: Mediciones
 ```
 
-## Objetivo
-
-Crear una base de datos MySQL sencilla para almacenar mediciones ambientales.
-
-Durante el Sprint 0 se utiliza una única tabla:
+Campos:
 
 ```text
-Mediciones
+nombre_micro VARCHAR(100) NOT NULL
+tipo         VARCHAR(50)  NOT NULL
+valor        DOUBLE       NOT NULL
+fecha_hora   DATETIME     NOT NULL
 ```
 
-con esta estructura:
+Clave primaria:
 
 ```text
-id       INT          PRIMARY KEY AUTO_INCREMENT
-fecha    DATETIME     NOT NULL
-tipo     VARCHAR(50)  NOT NULL
-valor    DOUBLE       NOT NULL
+PRIMARY KEY (nombre_micro, fecha_hora)
 ```
 
-## Requisitos
+No utilizar:
+
+```text
+id
+AUTO_INCREMENT
+```
+
+No existen claves foráneas en el Sprint 0.
+
+## Significado
+
+- `nombre_micro`: nombre BLE del microprocesador que originó la medición.
+- `tipo`: tipo de medición ambiental.
+- `valor`: valor numérico.
+- `fecha_hora`: fecha y hora generadas por el backend al almacenar la medición.
+
+La clave primaria compuesta debe permitir:
+
+```text
+Fabian_GTI     2026-10-14 12:00:00
+Profesor_GTI   2026-10-14 12:00:00
+```
+
+porque los nombres de microprocesador son distintos.
+
+## Consulta de última medición
+
+La consulta debe utilizar un orden determinista:
+
+```text
+fecha_hora DESC
+nombre_micro ASC
+```
+
+seguido de:
+
+```text
+LIMIT 1
+```
+
+## Pruebas manuales
+
+Puede incluir consultas de prueba comentadas para:
+
+- insertar una medición;
+- insertar dos micros diferentes con la misma `fecha_hora`;
+- consultar todas las mediciones;
+- consultar la última medición.
+
+## Resultado esperado
 
 Genera:
 
@@ -56,46 +84,4 @@ Genera:
 src/database/database.sql
 ```
 
-El archivo debe:
-
-- crear la tabla `Mediciones`;
-- utilizar `id` como clave primaria autoincremental;
-- almacenar la fecha y hora en `fecha`;
-- almacenar el tipo de medición en `tipo`;
-- almacenar el valor numérico en `valor`;
-- ser compatible con MySQL.
-
-No añadas tablas adicionales en el Sprint 0.
-
-## Correspondencia con el diseño
-
-El código debe corresponder con:
-
-```text
-doc/database_design.md
-```
-
-El diseño utiliza el formato:
-
-```text
-TABLE
-DESCRIPTION
-COLUMNS
-PRIMARY KEY
-FOREIGN KEYS
-CONSTRAINTS
-```
-
-No cambies los nombres de las columnas ni su significado.
-
-## Alcance
-
-No implementes PHP.
-
-No implementes REST.
-
-No implementes lógica de negocio.
-
-No implementes Android ni web.
-
-Genera únicamente el SQL necesario para la persistencia del Sprint 0.
+El resultado debe corresponder exactamente con `doc/database_design.md`.

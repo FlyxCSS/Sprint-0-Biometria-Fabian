@@ -1,116 +1,141 @@
-# Prompt para generar Frontend Business Logic
+# Prompt — Web
 
-Quiero que generes o adaptes únicamente el proxy de lógica de negocio utilizado por la interfaz web.
+Genera la interfaz web del Sprint 0 a partir de `doc/web_design.md`.
 
-## Arquitectura
+## Tecnologías
 
-La parte web debe respetar:
+Usar:
 
-```text
-Web
- ↓
-Frontend Business Logic
- ↓
-Communication
- ↓
-Business Logic
- ↓
-Database
-```
-
-Este prompt afecta únicamente a:
-
-```text
-doc/frontend_business_logic_design.md
-src/frontend_business_logic/
-```
+- HTML;
+- CSS;
+- JavaScript.
 
 ## Objetivo
 
-Implementar una lógica fake/proxy en JavaScript que permita a la GUI usar:
+Mostrar la última medición ambiental.
+
+Campos visibles:
 
 ```text
-leerMedicion()
+Micro
+Tipo
+Valor
+Fecha
+Hora
 ```
 
-sin conocer directamente HTTP.
+También debe existir:
 
-## Firma lógica
+- botón `Actualizar`;
+- texto con el momento de la última actualización;
+- área de estado para errores o ausencia de datos.
 
-Debe mantener la misma firma lógica que el backend:
-
-```text
-leerMedicion() --> Medicion | null
-```
-
-donde:
+## Tipo recibido
 
 ```text
 Medicion = (
-    id: N,
-    fecha: Text,
-    tipo: Text,
-    valor: R
+    nombreMicro: Texto,
+    tipo: Texto,
+    valor: R,
+    fechaHora: Texto
 )
 ```
 
-## Implementación
-
-El archivo principal será:
+Los datos concretos procedentes del proxy pueden llegar como:
 
 ```text
-src/frontend_business_logic/LogicaFake.js
+nombre_micro
+tipo
+valor
+fecha_hora
 ```
 
-Internamente puede utilizar:
+La GUI debe mostrar `fecha_hora` separada visualmente en:
 
-```javascript
+```text
+Fecha
+Hora
+```
+
+## Separación obligatoria
+
+La GUI NO debe usar directamente:
+
+```text
 fetch()
+XMLHttpRequest
+HTTP
+/api/medicion
 ```
 
-para realizar:
+Debe utilizar exclusivamente:
 
 ```text
-GET /api/medicion
+frontend_business_logic.leerMedicion()
 ```
 
-La GUI no debe contener `fetch()`.
-
-## Comportamiento
-
-`leerMedicion()` debe:
-
-1. hacer GET a `/api/medicion`;
-2. comprobar que la respuesta HTTP es correcta;
-3. devolver el JSON recibido;
-4. aceptar una respuesta `null`;
-5. lanzar o propagar un error cuando la respuesta HTTP sea incorrecta.
-
-## Tests
-
-Los tests estarán en:
+La arquitectura debe ser:
 
 ```text
-src/frontend_business_logic/tests/
+Web
+ |
+ v
+Frontend Business Logic
+ |
+ v
+Backend
 ```
 
-y deben comprobar:
+## Funciones de interfaz
+
+Mantener funciones equivalentes a:
 
 ```text
-leer una medición correcta
-usar /api/medicion
-aceptar null
-detectar errores HTTP
+Medicion | Nulo --> mostrarMedicion()
 ```
 
-Puede simularse `fetch()` para que los tests sean reproducibles.
+```text
+actualizarTextoUltimaActualizacion()
+```
 
-## Restricciones
+```text
+cargarMedicion()
+```
 
-No incluyas código de presentación HTML.
+```text
+inicializarInterfaz()
+```
 
-No manipules directamente el DOM.
+## Despliegue
 
-No añadas estilos.
+El código fuente del repositorio puede mantenerse dentro de:
 
-No muevas la lógica HTTP a `src/web/`.
+```text
+src/web/
+```
+
+En el despliegue de Plesk, `index.html`, `css/` y `js/` pueden situarse en la raíz de `httpdocs` para que:
+
+```text
+https://fuseriv.upv.edu.es
+```
+
+abra directamente la interfaz.
+
+Este detalle de despliegue no debe romper la separación del repositorio.
+
+## Comentarios
+
+Mantener cabeceras de archivo del proyecto.
+
+Las funciones JavaScript clave deben incluir encabezado de diseño lógico entre líneas discontinuas.
+
+## Resultado esperado
+
+Generar únicamente los archivos del componente:
+
+```text
+src/web/
+```
+
+sin introducir comunicación HTTP directa en la GUI.

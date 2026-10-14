@@ -2,155 +2,83 @@
 
 ## Diseño del Componente
 
-El componente `database` almacena las mediciones recibidas y validadas por el sistema.
+El componente `database` define la persistencia relacional utilizada por el Sprint 0.
 
-Durante el Sprint 0 existe una única tabla llamada `Mediciones`.
-
-La especificación de la tabla es:
+La tabla almacenará las mediciones ambientales recibidas desde distintos microprocesadores.
 
 ```text
 TABLE: Mediciones
-DESCRIPTION: Almacena las mediciones recibidas y validadas por la lógica de negocio.
+
+DESCRIPTION:
+Almacena las mediciones ambientales recibidas desde los microprocesadores.
 
 COLUMNS:
-id | INT | NOT NULL | AUTO_INCREMENT
-fecha | DATETIME | NOT NULL
-tipo | VARCHAR(50) | NOT NULL
-valor | DOUBLE | NOT NULL
+nombre_micro | VARCHAR(100) | NOT NULL | Nombre BLE del microprocesador que generó la medición.
+tipo         | VARCHAR(50)  | NOT NULL | Tipo de medición ambiental.
+valor        | DOUBLE       | NOT NULL | Valor numérico de la medición.
+fecha_hora   | DATETIME     | NOT NULL | Fecha y hora de almacenamiento generadas por el backend.
 
-PRIMARY KEY: id
+PRIMARY KEY:
+(nombre_micro, fecha_hora)
 
-FOREIGN KEYS: Ninguna
+FOREIGN KEYS:
+Ninguna.
 
 CONSTRAINTS:
-id se genera automáticamente mediante AUTO_INCREMENT.
-fecha, tipo y valor son obligatorios.
+- nombre_micro no puede ser nulo.
+- tipo no puede ser nulo.
+- valor no puede ser nulo.
+- fecha_hora no puede ser nula.
+- La combinación (nombre_micro, fecha_hora) debe ser única.
 ```
 
-### Representación lógica
+La clave primaria es compuesta:
+
+```text
+(nombre_micro, fecha_hora)
+```
+
+Por tanto, estas dos mediciones son válidas simultáneamente:
+
+```text
+Fabian_GTI    2026-10-14 12:00:00
+Profesor_GTI  2026-10-14 12:00:00
+```
+
+porque el valor de `nombre_micro` es diferente.
+
+En cambio, no pueden existir dos filas con exactamente la misma combinación:
+
+```text
+nombre_micro + fecha_hora
+```
+
+La entidad de dominio asociada es:
 
 ```text
 Medicion = (
-    id: N,
-    fecha: Text,
-    tipo: Text,
-    valor: R
+    nombreMicro: Texto,
+    tipo: Texto,
+    valor: R,
+    fechaHora: Texto
 )
-```
-
-### Campos
-
-```text
-id: N
-```
-
-Identificador único y autoincremental.
-
-```text
-fecha: Text
-```
-
-Fecha y hora de almacenamiento.
-
-```text
-tipo: Text
-```
-
-Tipo de medición. Durante el Sprint 0 se utiliza `O3`.
-
-```text
-valor: R
-```
-
-Valor numérico de la medición.
-
-### Implementación SQL
-
-La implementación se encuentra en:
-
-```text
-src/database/database.sql
-```
-
-y debe corresponder con esta estructura:
-
-```sql
-CREATE TABLE IF NOT EXISTS Mediciones (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    fecha DATETIME NOT NULL,
-    tipo VARCHAR(50) NOT NULL,
-    valor DOUBLE NOT NULL
-);
-```
-
-### Relación con Business Logic
-
-El acceso a los datos se realiza mediante `business_logic`.
-
-Para almacenar:
-
-```text
-Business Logic
-      |
-      | INSERT
-      v
-Mediciones
-```
-
-Para recuperar la última medición:
-
-```text
-Business Logic
-      |
-      | SELECT
-      v
-Mediciones
-```
-
-Las operaciones equivalentes de persistencia son:
-
-```sql
-INSERT INTO Mediciones (fecha, tipo, valor)
-VALUES (:fecha, :tipo, :valor);
-```
-
-```sql
-SELECT *
-FROM Mediciones
-ORDER BY id DESC
-LIMIT 1;
-```
-
-### Pruebas
-
-`database.sql` puede contener consultas manuales comentadas.
-
-Las pruebas automáticas del acceso a datos se realizan desde:
-
-```text
-src/business_logic/LogicaNegocioTest.php
 ```
 
 ## Aclaraciones del Diseño
 
-- La base de datos utiliza SQL.
-- Durante el Sprint 0 existe una única tabla llamada `Mediciones`.
-- `id` es la clave primaria y es autoincremental.
-- `fecha` utiliza `DATETIME`.
-- `tipo` utiliza `VARCHAR(50)`.
-- `valor` utiliza `DOUBLE`.
-- No existen claves foráneas en el Sprint 0.
-- La base de datos no contiene lógica de negocio.
-- No se añaden campos ni tablas adicionales durante el Sprint 0.
+- La fecha y hora se almacenan mediante `DATETIME`, sin milisegundos.
+- La fecha y hora son generadas por el backend al almacenar la medición.
+- `nombre_micro` corresponde al nombre BLE del microprocesador, por ejemplo `Fabian_GTI`.
+- La clave primaria compuesta permite que dos microprocesadores diferentes almacenen una medición en el mismo segundo.
+- Durante el Sprint 0 el mismo microprocesador no genera dos mediciones en el mismo segundo.
+- El nombre físico de las columnas debe mantenerse exactamente como se especifica en este diseño.
 
 ## Reglas Generales
 
-- Lenguaje de implementación: SQL.
+- Lenguaje de definición de datos: SQL para MySQL/MariaDB.
 - La implementación debe mantenerse en `src/database/`.
-- La implementación debe coincidir con este diseño.
-- La tabla debe llamarse `Mediciones`.
-- No se deben añadir campos o tablas no definidos.
-- El código SQL debe ser sencillo y legible.
-- La creación debe utilizar `CREATE TABLE IF NOT EXISTS`.
-- `id` debe utilizar `AUTO_INCREMENT`.
-- Las consultas manuales de prueba deben permanecer comentadas.
+- La estructura implementada debe respetar exactamente `TABLE`, `COLUMNS`, `PRIMARY KEY`, `FOREIGN KEYS` y `CONSTRAINTS`.
+- Los nombres de tabla y columnas no deben modificarse sin actualizar los demás diseños dependientes.
+- El código SQL debe ser claro y legible.
+- Las consultas manuales de comprobación pueden mantenerse comentadas dentro de `database.sql`.
+- Las operaciones principales de persistencia deben quedar cubiertas mediante pruebas automáticas desde `business_logic`.
