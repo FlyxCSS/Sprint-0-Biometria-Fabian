@@ -13,6 +13,13 @@ Copyright: material académico y modificaciones del autor.
 
 class LogicaFake {
 
+    /*
+    ------------------------------------------------------------
+    LogicaFake()
+
+    Inicializa el proxy con la ruta utilizada para leer mediciones.
+    ------------------------------------------------------------
+    */
     constructor() {
 
         this.urlMedicion =

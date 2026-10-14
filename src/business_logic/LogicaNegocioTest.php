@@ -1,462 +1,316 @@
 <?php
+declare(strict_types=1);
 
 // --------------------------------------------------------------
 // Fichero: LogicaNegocioTest.php
-// Descripción: Tests automáticos de la lógica de negocio.
-// Fecha: 2026-10-04
+// Descripción: Pruebas automáticas de la lógica de negocio.
+// Fecha: 2026-10-14
 // Autor: Fabián Useche
-// Aportación: pruebas automáticas de LogicaNegocio para Sprint 0.
+// Aportación: adaptación de las pruebas a la nueva estructura
+//             de la tabla Mediciones.
 // Copyright: material académico y modificaciones del autor.
 // --------------------------------------------------------------
-
 
 require_once __DIR__ . '/LogicaNegocio.php';
 
 
 // ------------------------------------------------------------
-// condicion: B, nombre: Text --> comprobar()
+// condicion: B, mensaje: Text --> comprobar()
 //
-// Comprueba una condición.
-// Si es correcta muestra OK.
-// Si falla lanza una excepción.
+// Comprueba una condición y muestra el resultado del test.
 // ------------------------------------------------------------
 function comprobar(
     bool $condicion,
-    string $nombre
+    string $mensaje
 ): void {
 
-    if (!$condicion) {
+    if (
+        !$condicion
+    ) {
 
-        throw new RuntimeException(
-            'FALLO - ' . $nombre
-        );
+        echo
+            "ERROR - "
+            . $mensaje
+            . PHP_EOL;
+
+        exit(1);
     }
 
 
     echo
-        'OK - '
-        . $nombre
+        "OK - "
+        . $mensaje
         . PHP_EOL;
-}
+
+} // comprobar()
 
 
 // ------------------------------------------------------------
-// FakePDOStatement
+// crearConexionPrueba() --> PDO
 //
-// Simula las operaciones de PDOStatement necesarias para probar
-// LogicaNegocio sin utilizar la base de datos real.
+// Crea una base de datos temporal para ejecutar los tests.
 // ------------------------------------------------------------
-class FakePDOStatement extends PDOStatement
+function crearConexionPrueba(): PDO
 {
-    private FakePDO $conexionFake;
 
-    private string $operacion;
-
-
-    // ------------------------------------------------------------
-    // conexion: FakePDO, operacion: Text
-    //     --> FakePDOStatement()
-    //
-    // Inicializa una sentencia falsa para los tests.
-    // ------------------------------------------------------------
-    public function __construct(
-        FakePDO $conexionFake,
-        string $operacion
-    ) {
-
-        $this->conexionFake =
-            $conexionFake;
-
-
-        $this->operacion =
-            $operacion;
-    }
-
-
-    // ------------------------------------------------------------
-    // parametros: array --> execute() --> B
-    //
-    // Simula la ejecución del INSERT utilizado por
-    // LogicaNegocio.guardarMedicion().
-    // ------------------------------------------------------------
-    public function execute(
-        ?array $params = null
-    ): bool {
-
-        if (
-            $this->operacion
-            ===
-            'insert'
-        ) {
-
-            $this->conexionFake
-                ->insertar(
-                    $params ?? []
-                );
-        }
-
-
-        return true;
-    }
-
-
-    // ------------------------------------------------------------
-    // fetch() --> Medicion | false
-    //
-    // Devuelve la última medición almacenada en la base falsa.
-    // ------------------------------------------------------------
-    public function fetch(
-        int $mode = PDO::FETCH_DEFAULT,
-        int $cursorOrientation = PDO::FETCH_ORI_NEXT,
-        int $cursorOffset = 0
-    ): mixed {
-
-        return
-            $this->conexionFake
-                ->ultima();
-    }
-}
-
-
-// ------------------------------------------------------------
-// FakePDO
-//
-// Simula una base de datos únicamente durante los tests.
-//
-// No utiliza MySQL.
-// No necesita credenciales.
-// No modifica la base de datos real.
-// ------------------------------------------------------------
-class FakePDO extends PDO
-{
-    private array $mediciones = [];
-
-    private int $ultimoId = 0;
-
-
-    // ------------------------------------------------------------
-    // FakePDO()
-    //
-    // Crea la base de datos falsa utilizada únicamente por
-    // LogicaNegocioTest.php.
-    // ------------------------------------------------------------
-    public function __construct()
-    {
-        /*
-         * No se llama al constructor real de PDO.
-         *
-         * Esta clase funciona únicamente como sustituto
-         * temporal durante los tests.
-         */
-    }
-
-
-    // ------------------------------------------------------------
-    // query: Text --> prepare() --> PDOStatement
-    //
-    // Devuelve una sentencia falsa para simular el INSERT.
-    // ------------------------------------------------------------
-    public function prepare(
-        string $query,
-        array $options = []
-    ): PDOStatement|false {
-
-        return new FakePDOStatement(
-            $this,
-            'insert'
+    $conexion =
+        new PDO(
+            'sqlite::memory:'
         );
-    }
 
 
-    // ------------------------------------------------------------
-    // query: Text --> query() --> PDOStatement
-    //
-    // Devuelve una sentencia falsa para simular el SELECT.
-    // ------------------------------------------------------------
-    public function query(
-        string $query,
-        ?int $fetchMode = null,
-        mixed ...$fetchModeArgs
-    ): PDOStatement|false {
-
-        return new FakePDOStatement(
-            $this,
-            'select'
-        );
-    }
+    $conexion->setAttribute(
+        PDO::ATTR_ERRMODE,
+        PDO::ERRMODE_EXCEPTION
+    );
 
 
-    // ------------------------------------------------------------
-    // lastInsertId() --> Text
-    //
-    // Devuelve el último identificador generado por la base falsa.
-    // ------------------------------------------------------------
-    public function lastInsertId(
-        ?string $name = null
-    ): string|false {
+    $conexion->exec(
+        'CREATE TABLE Mediciones (
+            nombre_micro TEXT NOT NULL,
+            tipo TEXT NOT NULL,
+            valor REAL NOT NULL,
+            fecha_hora TEXT NOT NULL,
 
-        return
-            (string) $this->ultimoId;
-    }
-
-
-    // ------------------------------------------------------------
-    // parametros: array --> insertar()
-    //
-    // Guarda una medición dentro de la memoria utilizada
-    // únicamente por el test.
-    // ------------------------------------------------------------
-    public function insertar(
-        array $parametros
-    ): void {
-
-        $this->ultimoId++;
-
-
-        $this->mediciones[] = [
-
-            'id'
-                => $this->ultimoId,
-
-            'fecha'
-                => $parametros[':fecha'],
-
-            'tipo'
-                => $parametros[':tipo'],
-
-            'valor'
-                => $parametros[':valor']
-        ];
-    }
-
-
-    // ------------------------------------------------------------
-    // ultima() --> Medicion | false
-    //
-    // Devuelve la última medición guardada en la base falsa.
-    // ------------------------------------------------------------
-    public function ultima(): array|false
-    {
-
-        if (
-            count(
-                $this->mediciones
+            PRIMARY KEY (
+                nombre_micro,
+                fecha_hora
             )
-            ===
-            0
-        ) {
-
-            return false;
-        }
+        )'
+    );
 
 
-        return
-            $this->mediciones[
-                count(
-                    $this->mediciones
-                ) - 1
-            ];
-    }
-}
+    return
+        $conexion;
+
+} // crearConexionPrueba()
 
 
-// ============================================================
-// EJECUCIÓN DE LOS TESTS
-// ============================================================
+echo
+    "===== TESTS LOGICA DE NEGOCIO ====="
+    . PHP_EOL
+    . PHP_EOL;
+
+
+// ------------------------------------------------------------
+// TEST 1
+// Guardar una medición válida.
+// ------------------------------------------------------------
+
+$conexion =
+    crearConexionPrueba();
+
+
+$logica =
+    new LogicaNegocio(
+        $conexion
+    );
+
+
+$medicion =
+    $logica->guardarMedicion(
+        'Fabian_GTI',
+        'O3',
+        1.234
+    );
+
+
+comprobar(
+    $medicion['nombre_micro'] === 'Fabian_GTI'
+        &&
+    $medicion['tipo'] === 'O3'
+        &&
+    abs(
+        $medicion['valor'] - 1.234
+    ) < 0.000001
+        &&
+    isset(
+        $medicion['fecha_hora']
+    ),
+    'guardar medicion valida'
+);
+
+
+// ------------------------------------------------------------
+// TEST 2
+// Rechazar un nombre de micro vacío.
+// ------------------------------------------------------------
 
 try {
 
-    echo
-        '===== TESTS LOGICA DE NEGOCIO ====='
-        . PHP_EOL;
-
-
-    $conexion =
-        new FakePDO();
-
-
-    $logica =
-        new LogicaNegocio(
-            $conexion
-        );
-
-
-    // --------------------------------------------------------
-    // TEST 1
-    // Guardar una medición válida
-    // --------------------------------------------------------
-
-    $medicion =
-        $logica->guardarMedicion(
-            'O3',
-            1.234
-        );
-
-
-    comprobar(
-
-        $medicion['id'] === 1
-
-        &&
-
-        $medicion['tipo'] === 'O3'
-
-        &&
-
-        abs(
-            $medicion['valor']
-            -
-            1.234
-        )
-        <
-        0.000001,
-
-        'guardar medicion valida'
+    $logica->guardarMedicion(
+        '',
+        'O3',
+        1.234
     );
 
 
-    // --------------------------------------------------------
-    // TEST 2
-    // Rechazar un tipo vacío
-    // --------------------------------------------------------
+    comprobar(
+        false,
+        'rechazar nombre_micro vacio'
+    );
 
-    $tipoVacioRechazado =
-        false;
+} catch (
+    InvalidArgumentException $e
+) {
+
+    comprobar(
+        true,
+        'rechazar nombre_micro vacio'
+    );
+}
 
 
-    try {
+// ------------------------------------------------------------
+// TEST 3
+// Rechazar un tipo vacío.
+// ------------------------------------------------------------
 
-        $logica->guardarMedicion(
-            '',
-            1.234
-        );
+try {
 
-    } catch (
-        InvalidArgumentException $e
-    ) {
-
-        $tipoVacioRechazado =
-            true;
-    }
+    $logica->guardarMedicion(
+        'Fabian_GTI',
+        '',
+        1.234
+    );
 
 
     comprobar(
-        $tipoVacioRechazado,
+        false,
         'rechazar tipo vacio'
     );
 
+} catch (
+    InvalidArgumentException $e
+) {
 
-    // --------------------------------------------------------
-    // TEST 3
-    // Rechazar un valor no numérico
-    // --------------------------------------------------------
-
-    $valorIncorrectoRechazado =
-        false;
+    comprobar(
+        true,
+        'rechazar tipo vacio'
+    );
+}
 
 
-    try {
+// ------------------------------------------------------------
+// TEST 4
+// Rechazar un valor no numérico.
+// ------------------------------------------------------------
 
-        $logica->guardarMedicion(
-            'O3',
-            'hola'
-        );
+try {
 
-    } catch (
-        InvalidArgumentException $e
-    ) {
-
-        $valorIncorrectoRechazado =
-            true;
-    }
+    $logica->guardarMedicion(
+        'Fabian_GTI',
+        'O3',
+        'abc'
+    );
 
 
     comprobar(
-        $valorIncorrectoRechazado,
+        false,
         'rechazar valor no numerico'
     );
 
-
-    // --------------------------------------------------------
-    // TEST 4
-    // Recuperar la última medición
-    // --------------------------------------------------------
-
-    $logica->guardarMedicion(
-        'O3',
-        2.345
-    );
-
-
-    $ultima =
-        $logica->leerMedicion();
-
-
-    comprobar(
-
-        $ultima !== null
-
-        &&
-
-        $ultima['id'] === 2
-
-        &&
-
-        abs(
-            $ultima['valor']
-            -
-            2.345
-        )
-        <
-        0.000001,
-
-        'leer ultima medicion'
-    );
-
-
-    // --------------------------------------------------------
-    // TEST 5
-    // Devolver null cuando no existen mediciones
-    // --------------------------------------------------------
-
-    $conexionVacia =
-        new FakePDO();
-
-
-    $logicaVacia =
-        new LogicaNegocio(
-            $conexionVacia
-        );
-
-
-    comprobar(
-        $logicaVacia->leerMedicion()
-        ===
-        null,
-
-        'devolver null sin mediciones'
-    );
-
-
-    echo PHP_EOL;
-
-
-    echo
-        'TODOS LOS TESTS HAN PASADO'
-        . PHP_EOL;
-
-
 } catch (
-    Throwable $e
+    InvalidArgumentException $e
 ) {
 
-    echo PHP_EOL;
-
-
-    echo
-        $e->getMessage()
-        . PHP_EOL;
-
-
-    exit(1);
+    comprobar(
+        true,
+        'rechazar valor no numerico'
+    );
 }
+
+
+// ------------------------------------------------------------
+// TEST 5
+// Recuperar la última medición almacenada.
+// ------------------------------------------------------------
+
+$ultima =
+    $logica->leerMedicion();
+
+
+comprobar(
+    $ultima !== null
+        &&
+    $ultima['nombre_micro'] === 'Fabian_GTI'
+        &&
+    $ultima['tipo'] === 'O3'
+        &&
+    abs(
+        $ultima['valor'] - 1.234
+    ) < 0.000001,
+    'leer ultima medicion'
+);
+
+
+// ------------------------------------------------------------
+// TEST 6
+// Permitir que dos micros diferentes tengan la misma fecha_hora.
+// ------------------------------------------------------------
+
+$conexion->exec(
+    "INSERT INTO Mediciones
+        (
+            nombre_micro,
+            tipo,
+            valor,
+            fecha_hora
+        )
+     VALUES
+        (
+            'Fabian_GTI',
+            'O3',
+            1.100,
+            '2026-10-14 12:00:00'
+        ),
+        (
+            'Profesor_GTI',
+            'O3',
+            2.200,
+            '2026-10-14 12:00:00'
+        )"
+);
+
+
+$numeroFilas =
+    (int) $conexion
+        ->query(
+            "SELECT COUNT(*)
+             FROM Mediciones
+             WHERE fecha_hora = '2026-10-14 12:00:00'"
+        )
+        ->fetchColumn();
+
+
+comprobar(
+    $numeroFilas === 2,
+    'permitir misma fecha_hora para micros distintos'
+);
+
+
+// ------------------------------------------------------------
+// TEST 7
+// Devolver null cuando no existen mediciones.
+// ------------------------------------------------------------
+
+$conexionVacia =
+    crearConexionPrueba();
+
+
+$logicaVacia =
+    new LogicaNegocio(
+        $conexionVacia
+    );
+
+
+comprobar(
+    $logicaVacia->leerMedicion() === null,
+    'devolver null sin mediciones'
+);
+
+
+echo
+    PHP_EOL
+    . "TODOS LOS TESTS HAN PASADO"
+    . PHP_EOL;

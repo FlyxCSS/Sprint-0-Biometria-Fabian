@@ -229,6 +229,11 @@ public class MainActivity extends AppCompatActivity {
         callbackEscaneo =
                 new ScanCallback() {
 
+                    // ------------------------------------------------------------
+                    // resultado: ResultadoBLE --> onScanResult()
+                    //
+                    // Procesa un resultado del escaneo general.
+                    // ------------------------------------------------------------
                     @Override
                     public void onScanResult(
                             int callbackType,
@@ -241,6 +246,11 @@ public class MainActivity extends AppCompatActivity {
                     }
 
 
+                    // ------------------------------------------------------------
+                    // errorCode: N --> onScanFailed()
+                    //
+                    // Registra un error producido durante el escaneo.
+                    // ------------------------------------------------------------
                     @Override
                     public void onScanFailed(
                             int errorCode
@@ -269,7 +279,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     // ------------------------------------------------------------
-    // resultado: ScanResult --> mostrarDispositivo()
+    // resultado: ResultadoBLE --> mostrarDispositivo()
     //
     // Muestra un dispositivo encontrado durante el escaneo general.
     // ------------------------------------------------------------
@@ -312,9 +322,9 @@ public class MainActivity extends AppCompatActivity {
 
 
     // ------------------------------------------------------------
-    // resultado: ScanResult --> obtenerNombreDispositivo() --> Text
+    // resultado: ResultadoBLE --> obtenerNombreDispositivo() --> Text
     //
-    // Obtiene el nombre anunciado por un dispositivo BLE.
+    // Obtiene el nombre real anunciado por el dispositivo BLE.
     // ------------------------------------------------------------
     @SuppressLint("MissingPermission")
     private String obtenerNombreDispositivo(
@@ -367,6 +377,11 @@ public class MainActivity extends AppCompatActivity {
         callbackEscaneo =
                 new ScanCallback() {
 
+                    // ------------------------------------------------------------
+                    // resultado: ResultadoBLE --> onScanResult()
+                    //
+                    // Procesa un resultado del escaneo filtrado.
+                    // ------------------------------------------------------------
                     @Override
                     public void onScanResult(
                             int callbackType,
@@ -379,6 +394,11 @@ public class MainActivity extends AppCompatActivity {
                     }
 
 
+                    // ------------------------------------------------------------
+                    // resultados --> onBatchScanResults()
+                    //
+                    // Procesa un conjunto de resultados BLE recibidos.
+                    // ------------------------------------------------------------
                     @Override
                     public void onBatchScanResults(
                             List<ScanResult> resultados
@@ -393,6 +413,11 @@ public class MainActivity extends AppCompatActivity {
                     }
 
 
+                    // ------------------------------------------------------------
+                    // errorCode: N --> onScanFailed()
+                    //
+                    // Registra un error producido durante el escaneo.
+                    // ------------------------------------------------------------
                     @Override
                     public void onScanFailed(
                             int errorCode
@@ -487,7 +512,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     // ------------------------------------------------------------
-    // resultado: ScanResult --> procesarResultadoBLE()
+    // resultado: ResultadoBLE --> procesarResultadoBLE()
     //
     // Interpreta una trama iBeacon y procesa la medición.
     // ------------------------------------------------------------
@@ -506,13 +531,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        if (
-                !NOMBRE_BEACON.equals(
-                        obtenerNombreDispositivo(
-                                resultado
-                        )
-                )
-        ) {
+        String nombreMicro =
+                obtenerNombreDispositivo(
+                        resultado
+                );
+
+
+        if (!NOMBRE_BEACON.equals(nombreMicro)) {
 
             return;
         }
@@ -589,6 +614,7 @@ public class MainActivity extends AppCompatActivity {
 
 
             mostrarIBeacon(
+                    nombreMicro,
                     trama,
                     major,
                     minor,
@@ -618,6 +644,7 @@ public class MainActivity extends AppCompatActivity {
 
 
             enviarMedicion(
+                    nombreMicro,
                     tipo,
                     valor
             );
@@ -636,12 +663,13 @@ public class MainActivity extends AppCompatActivity {
 
 
     // ------------------------------------------------------------
-    // trama, major, minor, tipo, tipoId, contador, valor
-    //        --> mostrarIBeacon()
+    // nombreMicro: Text, trama, major, minor, tipo, tipoId,
+    // contador, valor --> mostrarIBeacon()
     //
     // Muestra en Logcat los datos principales de la trama.
     // ------------------------------------------------------------
     private void mostrarIBeacon(
+            String nombreMicro,
             TramaIBeacon trama,
             int major,
             int minor,
@@ -659,9 +687,8 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d(
                 ETIQUETA_LOG,
-                "[IBEACON] "
-                        + NOMBRE_BEACON
-                        + " detectado"
+                "[IBEACON] Micro="
+                        + nombreMicro
         );
 
 
@@ -710,27 +737,38 @@ public class MainActivity extends AppCompatActivity {
 
 
     // ------------------------------------------------------------
-    // tipo: Text, valor: R --> enviarMedicion()
+    // nombreMicro: Text, tipo: Text, valor: R --> enviarMedicion()
     //
-    // Envía una nueva medición mediante la lógica fake.
+    // Envía una nueva medición mediante la lógica fake utilizando
+    // el nombre real obtenido del anuncio BLE.
     // ------------------------------------------------------------
     private void enviarMedicion(
+            String nombreMicro,
             String tipo,
             double valor
     ) {
 
         Log.d(
                 ETIQUETA_LOG,
-                "[MEDICION] Nueva -> se envia al servidor"
+                "[MEDICION] Nueva"
+                        + " | Micro="
+                        + nombreMicro
+                        + " -> se envia al servidor"
         );
 
 
         logicaFake.guardarMedicion(
+                nombreMicro,
                 tipo,
                 valor,
 
                 new LogicaFake.RespuestaGuardarMedicion() {
 
+                    // ------------------------------------------------------------
+                    // medicion: Medicion --> alGuardar()
+                    //
+                    // Procesa la confirmación de almacenamiento.
+                    // ------------------------------------------------------------
                     @Override
                     public void alGuardar(
                             Medicion medicion
@@ -739,10 +777,10 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(
                                 ETIQUETA_LOG,
                                 "[SERVIDOR] Guardada"
-                                        + " | ID="
-                                        + medicion.getId()
-                                        + " | Fecha="
-                                        + medicion.getFecha()
+                                        + " | Micro="
+                                        + medicion.getNombreMicro()
+                                        + " | FechaHora="
+                                        + medicion.getFechaHora()
                                         + " | Tipo="
                                         + medicion.getTipo()
                                         + " | Valor="
@@ -751,6 +789,11 @@ public class MainActivity extends AppCompatActivity {
                     }
 
 
+                    // ------------------------------------------------------------
+                    // error: Text --> alFallar()
+                    //
+                    // Registra un error al almacenar la medición.
+                    // ------------------------------------------------------------
                     @Override
                     public void alFallar(
                             String error
@@ -806,7 +849,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     // ------------------------------------------------------------
-    // v: View --> botonBuscarTodosLosDispositivosBTLEPulsado()
+    // v --> botonBuscarTodosLosDispositivosBTLEPulsado()
     // ------------------------------------------------------------
     public void botonBuscarTodosLosDispositivosBTLEPulsado(
             View v
@@ -818,7 +861,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     // ------------------------------------------------------------
-    // v: View --> botonBuscarNuestroDispositivoBTLEPulsado()
+    // v --> botonBuscarNuestroDispositivoBTLEPulsado()
     // ------------------------------------------------------------
     public void botonBuscarNuestroDispositivoBTLEPulsado(
             View v
@@ -830,7 +873,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     // ------------------------------------------------------------
-    // v: View --> botonDetenerBusquedaDispositivosBTLEPulsado()
+    // v --> botonDetenerBusquedaDispositivosBTLEPulsado()
     // ------------------------------------------------------------
     public void botonDetenerBusquedaDispositivosBTLEPulsado(
             View v
@@ -842,7 +885,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     // ------------------------------------------------------------
-    // savedInstanceState: Bundle --> onCreate()
+    // onCreate()
     //
     // Inicializa la aplicación.
     // ------------------------------------------------------------
@@ -873,8 +916,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     // ------------------------------------------------------------
-    // requestCode: N, permissions, grantResults
-    //        --> onRequestPermissionsResult()
+    // onRequestPermissionsResult()
     //
     // Procesa el resultado de los permisos solicitados.
     // ------------------------------------------------------------
@@ -943,4 +985,4 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-}
+} // class MainActivity

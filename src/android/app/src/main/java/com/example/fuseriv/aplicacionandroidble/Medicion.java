@@ -13,9 +13,9 @@ package com.example.fuseriv.aplicacionandroidble;
 public class Medicion {
 
 
-    private final int id;
+    private final String nombreMicro;
 
-    private final String fecha;
+    private final String fechaHora;
 
     private final String tipo;
 
@@ -23,23 +23,23 @@ public class Medicion {
 
 
     // ------------------------------------------------------------
-    // id: N, fecha: Text, tipo: Text, valor: R
+    // nombreMicro: Text, fechaHora: Text, tipo: Text, valor: R
     //      --> Medicion()
     //
     // Crea una medición con los datos devueltos por el backend.
     // ------------------------------------------------------------
     public Medicion(
-            int id,
-            String fecha,
+            String nombreMicro,
+            String fechaHora,
             String tipo,
             double valor
     ) {
 
-        this.id =
-                id;
+        this.nombreMicro =
+                nombreMicro;
 
-        this.fecha =
-                fecha;
+        this.fechaHora =
+                fechaHora;
 
         this.tipo =
                 tipo;
@@ -50,24 +50,24 @@ public class Medicion {
 
 
     // ------------------------------------------------------------
-    // getId() --> N
+    // getNombreMicro() --> Text
     //
-    // Devuelve el identificador de la medición.
+    // Devuelve el nombre del microprocesador que generó la medida.
     // ------------------------------------------------------------
-    public int getId() {
+    public String getNombreMicro() {
 
-        return id;
+        return nombreMicro;
     }
 
 
     // ------------------------------------------------------------
-    // getFecha() --> Text
+    // getFechaHora() --> Text
     //
-    // Devuelve la fecha de la medición.
+    // Devuelve la fecha y hora asignadas por el backend.
     // ------------------------------------------------------------
-    public String getFecha() {
+    public String getFechaHora() {
 
-        return fecha;
+        return fechaHora;
     }
 
 
@@ -92,4 +92,4 @@ public class Medicion {
         return valor;
     }
 
-}
+} // class Medicion

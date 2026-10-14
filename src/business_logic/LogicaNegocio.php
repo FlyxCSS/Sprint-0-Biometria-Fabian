@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 // --------------------------------------------------------------
 // Fichero: LogicaNegocio.php
@@ -11,115 +12,155 @@
 // Copyright: material académico y modificaciones del autor.
 // --------------------------------------------------------------
 
-
 class LogicaNegocio
 {
+
     private PDO $conexion;
 
 
     // ------------------------------------------------------------
-    // conexion: PDO --> LogicaNegocio()
+    // conexion --> LogicaNegocio()
     //
-    // Inicializa la lógica de negocio utilizando una conexión
-    // PDO proporcionada desde el exterior.
+    // Guarda la conexión utilizada para acceder a la base de datos.
     // ------------------------------------------------------------
     public function __construct(
         PDO $conexion
     ) {
-        $this->conexion = $conexion;
-    }
+
+        $this->conexion =
+            $conexion;
+
+    } // __construct()
 
 
     // ------------------------------------------------------------
-    // tipo: Text, valor: R --> guardarMedicion() --> Medicion
+    // nombreMicro: Text, tipo: Text, valor: R
+    //      --> guardarMedicion() --> Medicion
     //
-    // Valida y almacena una nueva medición en la base de datos.
-    // La fecha y hora se generan en el backend utilizando
-    // la zona horaria Europe/Madrid.
+    // Valida y almacena una nueva medición.
+    // La fecha y hora se generan en el servidor.
     // ------------------------------------------------------------
     public function guardarMedicion(
+        string $nombreMicro,
         string $tipo,
-        $valor
+        mixed $valor
     ): array {
 
-        $tipo = trim($tipo);
+        $nombreMicro =
+            trim(
+                $nombreMicro
+            );
 
 
-        if ($tipo === '') {
+        $tipo =
+            trim(
+                $tipo
+            );
+
+
+        if (
+            $nombreMicro === ''
+        ) {
 
             throw new InvalidArgumentException(
-                'El tipo de medición no puede estar vacío'
+                'El nombre del micro no puede estar vacio.'
             );
         }
 
 
-        if (!is_numeric($valor)) {
+        if (
+            $tipo === ''
+        ) {
 
             throw new InvalidArgumentException(
-                'El valor de la medición debe ser numérico'
+                'El tipo no puede estar vacio.'
             );
         }
 
 
-        $valor =
+        if (
+            !is_numeric(
+                $valor
+            )
+        ) {
+
+            throw new InvalidArgumentException(
+                'El valor debe ser numerico.'
+            );
+        }
+
+
+        $valorNumerico =
             (float) $valor;
 
 
-        /*
-         * La fecha se genera en el servidor.
-         *
-         * Se indica explícitamente Europe/Madrid para no depender
-         * de la configuración horaria del servidor Plesk.
-         */
-        $fecha = (
-            new DateTimeImmutable(
-                'now',
-                new DateTimeZone(
-                    'Europe/Madrid'
-                )
-            )
-        )->format(
-            'Y-m-d H:i:s'
-        );
-
-
-        $sql = '
-            INSERT INTO Mediciones (
-                fecha,
-                tipo,
-                valor
-            )
-            VALUES (
-                :fecha,
-                :tipo,
-                :valor
-            )
-        ';
-
-
-        $sentencia =
-            $this->conexion->prepare(
-                $sql
+        $zonaHoraria =
+            new DateTimeZone(
+                'Europe/Madrid'
             );
 
 
-        $sentencia->execute([
-            ':fecha' => $fecha,
-            ':tipo' => $tipo,
-            ':valor' => $valor
-        ]);
+        $fechaHora =
+            (
+                new DateTimeImmutable(
+                    'now',
+                    $zonaHoraria
+                )
+            )->format(
+                'Y-m-d H:i:s'
+            );
 
 
-        $id =
-            (int) $this->conexion->lastInsertId();
+        $consulta =
+            $this->conexion->prepare(
+                'INSERT INTO Mediciones
+                    (
+                        nombre_micro,
+                        tipo,
+                        valor,
+                        fecha_hora
+                    )
+                 VALUES
+                    (
+                        :nombre_micro,
+                        :tipo,
+                        :valor,
+                        :fecha_hora
+                    )'
+            );
 
 
-        return [
-            'id' => $id,
-            'fecha' => $fecha,
-            'tipo' => $tipo,
-            'valor' => $valor
-        ];
+        $consulta->execute(
+            [
+                ':nombre_micro' =>
+                    $nombreMicro,
+
+                ':tipo' =>
+                    $tipo,
+
+                ':valor' =>
+                    $valorNumerico,
+
+                ':fecha_hora' =>
+                    $fechaHora,
+            ]
+        );
+
+
+        return
+            [
+                'nombre_micro' =>
+                    $nombreMicro,
+
+                'tipo' =>
+                    $tipo,
+
+                'valor' =>
+                    $valorNumerico,
+
+                'fecha_hora' =>
+                    $fechaHora,
+            ];
 
     } // guardarMedicion()
 
@@ -127,51 +168,46 @@ class LogicaNegocio
     // ------------------------------------------------------------
     // leerMedicion() --> Medicion | null
     //
-    // Recupera la última medición almacenada en la base de datos.
-    // Si no existen mediciones devuelve null.
+    // Recupera la última medición almacenada.
     // ------------------------------------------------------------
     public function leerMedicion(): ?array
     {
 
-        $sql = '
-            SELECT
-                id,
-                fecha,
-                tipo,
-                valor
-            FROM Mediciones
-            ORDER BY id DESC
-            LIMIT 1
-        ';
-
-
-        $sentencia =
+        $consulta =
             $this->conexion->query(
-                $sql
+                'SELECT
+                    nombre_micro,
+                    tipo,
+                    valor,
+                    fecha_hora
+                 FROM Mediciones
+                 ORDER BY
+                    fecha_hora DESC,
+                    nombre_micro ASC
+                LIMIT 1'
             );
 
 
         $medicion =
-            $sentencia->fetch(
+            $consulta->fetch(
                 PDO::FETCH_ASSOC
             );
 
 
-        if ($medicion === false) {
+        if (
+            $medicion === false
+        ) {
 
             return null;
         }
-
-
-        $medicion['id'] =
-            (int) $medicion['id'];
 
 
         $medicion['valor'] =
             (float) $medicion['valor'];
 
 
-        return $medicion;
+        return
+            $medicion;
 
     } // leerMedicion()
 

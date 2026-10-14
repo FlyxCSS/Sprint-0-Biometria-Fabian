@@ -43,14 +43,15 @@ public class LogicaFake {
 
 
     // ------------------------------------------------------------
-    // tipo: Text, valor: R
+    // nombreMicro: Text, tipo: Text, valor: R
     //      --> guardarMedicion()
     //      --> Medicion
     //
-    // Representa en Android la operación guardarMedicion().
-    // La Medicion se entrega de forma asíncrona mediante callback.
+    // Envía al backend el nombre real recibido por BLE junto con
+    // el tipo y el valor de la medición.
     // ------------------------------------------------------------
     public void guardarMedicion(
+            String nombreMicro,
             String tipo,
             double valor,
             RespuestaGuardarMedicion respuesta
@@ -60,6 +61,12 @@ public class LogicaFake {
 
             JSONObject json =
                     new JSONObject();
+
+
+            json.put(
+                    "nombre_micro",
+                    nombreMicro
+            );
 
 
             json.put(
@@ -76,15 +83,11 @@ public class LogicaFake {
 
             Log.d(
                     ETIQUETA_LOG,
-                    "[GUARDAR] Enviando medicion"
-            );
-
-
-            Log.d(
-                    ETIQUETA_LOG,
-                    "[GUARDAR] Tipo = "
+                    "[GUARDAR] Micro="
+                            + nombreMicro
+                            + " | Tipo="
                             + tipo
-                            + " | Valor = "
+                            + " | Valor="
                             + valor
             );
 
@@ -100,6 +103,11 @@ public class LogicaFake {
 
                     new PeticionarioREST.RespuestaREST() {
 
+                        // ------------------------------------------------------------
+                        // codigo: Z, cuerpo: Text --> callback()
+                        //
+                        // Convierte la respuesta correcta del backend en Medicion.
+                        // ------------------------------------------------------------
                         @Override
                         public void callback(
                                 int codigo,
@@ -123,12 +131,12 @@ public class LogicaFake {
                                     Medicion medicion =
                                             new Medicion(
 
-                                                    respuestaJSON.getInt(
-                                                            "id"
+                                                    respuestaJSON.getString(
+                                                            "nombre_micro"
                                                     ),
 
                                                     respuestaJSON.getString(
-                                                            "fecha"
+                                                            "fecha_hora"
                                                     ),
 
                                                     respuestaJSON.getString(
@@ -143,18 +151,11 @@ public class LogicaFake {
 
                                     Log.d(
                                             ETIQUETA_LOG,
-                                            "[GUARDAR] Medicion almacenada correctamente"
-                                    );
-
-
-                                    Log.d(
-                                            ETIQUETA_LOG,
-                                            "[GUARDAR] ID = "
-                                                    + medicion.getId()
-                                                    + " | Tipo = "
-                                                    + medicion.getTipo()
-                                                    + " | Valor = "
-                                                    + medicion.getValor()
+                                            "[GUARDAR] Almacenada"
+                                                    + " | Micro="
+                                                    + medicion.getNombreMicro()
+                                                    + " | FechaHora="
+                                                    + medicion.getFechaHora()
                                     );
 
 
@@ -185,7 +186,7 @@ public class LogicaFake {
 
                                 Log.d(
                                         ETIQUETA_LOG,
-                                        "[ERROR] No se pudo interpretar la respuesta: "
+                                        "[ERROR] Respuesta no valida: "
                                                 + e.getMessage()
                                 );
 

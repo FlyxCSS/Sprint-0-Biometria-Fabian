@@ -27,6 +27,11 @@ function mostrarMedicion(
     if (medicion === null) {
 
         document.getElementById(
+            "nombreMicro"
+        ).textContent = "-";
+
+
+        document.getElementById(
             "tipo"
         ).textContent = "-";
 
@@ -51,6 +56,12 @@ function mostrarMedicion(
 
 
     document.getElementById(
+        "nombreMicro"
+    ).textContent =
+        medicion.nombre_micro;
+
+
+    document.getElementById(
         "tipo"
     ).textContent =
         medicion.tipo;
@@ -63,7 +74,7 @@ function mostrarMedicion(
 
 
     const fechaHora =
-        medicion.fecha.split(
+        medicion.fecha_hora.split(
             " "
         );
 

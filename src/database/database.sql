@@ -1,74 +1,98 @@
--- ------------------------------------------------------------
+-- --------------------------------------------------------------
 -- Fichero: database.sql
--- Descripción: Creación de la base de datos utilizada para
---              almacenar las mediciones del Sprint 0.
--- Fecha: 2026-10-04
+-- Descripción: Define la tabla utilizada para almacenar
+--              mediciones ambientales durante el Sprint 0.
+-- Fecha: 2026-10-14
 -- Autor: Fabián Useche
--- Aportación: diseño e implementación de la tabla Mediciones.
+-- Aportación: adaptación de la base de datos para utilizar
+--             nombre_micro y fecha_hora como clave primaria.
 -- Copyright: material académico y modificaciones del autor.
--- ------------------------------------------------------------
+-- --------------------------------------------------------------
 
 
 -- ------------------------------------------------------------
--- Tabla: Mediciones
+-- TABLA: Mediciones
 --
--- Diseño:
+-- Guarda las mediciones recibidas desde los microprocesadores.
 --
--- Mediciones = (
---     id: N,
---     fecha: Text,
---     tipo: Text,
---     valor: R
--- )
---
--- Cada fila representa una medición almacenada por la lógica
--- de negocio.
+-- Clave primaria compuesta:
+-- (nombre_micro, fecha_hora)
 -- ------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS Mediciones (
 
-    id INT AUTO_INCREMENT PRIMARY KEY,
-
-    fecha DATETIME NOT NULL,
+    nombre_micro VARCHAR(100) NOT NULL,
 
     tipo VARCHAR(50) NOT NULL,
 
-    valor DOUBLE NOT NULL
+    valor DOUBLE NOT NULL,
+
+    fecha_hora DATETIME NOT NULL,
+
+    PRIMARY KEY (
+        nombre_micro,
+        fecha_hora
+    )
 
 );
 
 
 -- ------------------------------------------------------------
--- CONSULTAS DE PRUEBA MANUAL
+-- PRUEBAS MANUALES
 --
--- Estas consultas quedan comentadas para evitar modificar
--- accidentalmente los datos reales de la base de datos.
+-- Estas consultas están comentadas para que no se ejecuten
+-- automáticamente al crear la base de datos.
 -- ------------------------------------------------------------
 
 
 -- Insertar una medición de prueba:
 --
 -- INSERT INTO Mediciones (
---     fecha,
+--     nombre_micro,
 --     tipo,
---     valor
+--     valor,
+--     fecha_hora
 -- )
 -- VALUES (
---     '2026-10-04 12:00:00',
+--     'Fabian_GTI',
 --     'O3',
---     1.234
+--     1.234,
+--     '2026-10-14 12:00:00'
 -- );
 
 
--- Leer todas las mediciones:
+-- Insertar otra medición realizada a la misma hora
+-- por un microprocesador diferente:
+--
+-- INSERT INTO Mediciones (
+--     nombre_micro,
+--     tipo,
+--     valor,
+--     fecha_hora
+-- )
+-- VALUES (
+--     'Profesor_GTI',
+--     'O3',
+--     0.950,
+--     '2026-10-14 12:00:00'
+-- );
+
+
+-- Consultar todas las mediciones:
 --
 -- SELECT *
 -- FROM Mediciones;
 
 
--- Leer la última medición almacenada:
+-- Consultar la última medición almacenada:
 --
--- SELECT *
+-- SELECT
+--     nombre_micro,
+--     tipo,
+--     valor,
+--     fecha_hora
 -- FROM Mediciones
--- ORDER BY id DESC
+-- ORDER BY
+--     fecha_hora DESC,
+--     nombre_micro ASC
 -- LIMIT 1;

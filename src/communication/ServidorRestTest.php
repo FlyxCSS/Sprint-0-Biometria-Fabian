@@ -1,11 +1,13 @@
 <?php
+declare(strict_types=1);
 
 // --------------------------------------------------------------
 // Fichero: ServidorRestTest.php
-// Descripción: Tests automáticos del servidor REST.
-// Fecha: 2026-10-04
+// Descripción: Pruebas automáticas del servidor REST.
+// Fecha: 2026-10-14
 // Autor: Fabián Useche
-// Aportación: pruebas automáticas del API REST del Sprint 0.
+// Aportación: adaptación de las pruebas del API REST al campo
+//             nombre_micro y a la nueva respuesta de medición.
 // Copyright: material académico y modificaciones del autor.
 // --------------------------------------------------------------
 
@@ -22,10 +24,13 @@ function comprobar(
     string $nombre
 ): void {
 
-    if (!$condicion) {
+    if (
+        !$condicion
+    ) {
 
         throw new RuntimeException(
-            'FALLO - ' . $nombre
+            'FALLO - '
+            . $nombre
         );
     }
 
@@ -34,7 +39,8 @@ function comprobar(
         'OK - '
         . $nombre
         . PHP_EOL;
-}
+
+} // comprobar()
 
 
 // ------------------------------------------------------------
@@ -50,18 +56,26 @@ function hacerPeticion(
     ?string $cuerpo = null
 ): array {
 
-    $opciones = [
-        'http' => [
-            'method' => $metodo,
-            'ignore_errors' => true,
-            'header' =>
-                "Content-Type: application/json\r\n"
-                . "Accept: application/json\r\n"
-        ]
-    ];
+    $opciones =
+        [
+            'http' =>
+                [
+                    'method'
+                        => $metodo,
+
+                    'ignore_errors'
+                        => true,
+
+                    'header'
+                        => "Content-Type: application/json\r\n"
+                        . "Accept: application/json\r\n"
+                ]
+        ];
 
 
-    if ($cuerpo !== null) {
+    if (
+        $cuerpo !== null
+    ) {
 
         $opciones['http']['content'] =
             $cuerpo;
@@ -111,11 +125,16 @@ function hacerPeticion(
     }
 
 
-    return [
-        'codigo' => $codigoHTTP,
-        'cuerpo' => $respuesta
-    ];
-}
+    return
+        [
+            'codigo'
+                => $codigoHTTP,
+
+            'cuerpo'
+                => $respuesta
+        ];
+
+} // hacerPeticion()
 
 
 // ============================================================
@@ -130,22 +149,31 @@ try {
 
     echo
         '===== TESTS SERVIDOR REST ====='
+        . PHP_EOL
         . PHP_EOL;
 
 
     // --------------------------------------------------------
     // TEST 1
-    // POST correcto
+    // POST correcto.
     // --------------------------------------------------------
 
     $respuesta =
         hacerPeticion(
             $urlMedicion,
             'POST',
-            json_encode([
-                'tipo' => 'O3',
-                'valor' => 1.234
-            ])
+            json_encode(
+                [
+                    'nombre_micro'
+                        => 'Fabian_GTI',
+
+                    'tipo'
+                        => 'O3',
+
+                    'valor'
+                        => 1.234
+                ]
+            )
         );
 
 
@@ -163,53 +191,102 @@ try {
 
 
     comprobar(
-        is_array($datos)
-        &&
+        is_array(
+            $datos
+        )
+            &&
+        $datos['nombre_micro'] === 'Fabian_GTI'
+            &&
         $datos['tipo'] === 'O3'
-        &&
+            &&
         abs(
             $datos['valor']
             -
             1.234
-        ) < 0.000001,
+        ) < 0.000001
+            &&
+        isset(
+            $datos['fecha_hora']
+        ),
         'POST devuelve medicion correcta'
     );
 
 
     // --------------------------------------------------------
     // TEST 2
-    // POST con tipo vacío
+    // POST sin nombre_micro.
     // --------------------------------------------------------
 
     $respuesta =
         hacerPeticion(
             $urlMedicion,
             'POST',
-            json_encode([
-                'tipo' => '',
-                'valor' => 1.234
-            ])
+            json_encode(
+                [
+                    'tipo'
+                        => 'O3',
+
+                    'valor'
+                        => 1.234
+                ]
+            )
         );
 
 
     comprobar(
         $respuesta['codigo'] === 400,
-        'POST con tipo vacio devuelve 400'
+        'POST sin nombre_micro devuelve 400'
     );
 
 
     // --------------------------------------------------------
     // TEST 3
-    // POST sin tipo
+    // POST con nombre_micro vacío.
     // --------------------------------------------------------
 
     $respuesta =
         hacerPeticion(
             $urlMedicion,
             'POST',
-            json_encode([
-                'valor' => 1.234
-            ])
+            json_encode(
+                [
+                    'nombre_micro'
+                        => '',
+
+                    'tipo'
+                        => 'O3',
+
+                    'valor'
+                        => 1.234
+                ]
+            )
+        );
+
+
+    comprobar(
+        $respuesta['codigo'] === 400,
+        'POST con nombre_micro vacio devuelve 400'
+    );
+
+
+    // --------------------------------------------------------
+    // TEST 4
+    // POST sin tipo.
+    // --------------------------------------------------------
+
+    $respuesta =
+        hacerPeticion(
+            $urlMedicion,
+            'POST',
+            json_encode(
+                [
+                    'nombre_micro'
+                        => 'Fabian_GTI',
+
+                    'valor'
+                        => 1.234
+                ]
+            )
         );
 
 
@@ -220,17 +297,53 @@ try {
 
 
     // --------------------------------------------------------
-    // TEST 4
-    // POST sin valor
+    // TEST 5
+    // POST con tipo vacío.
     // --------------------------------------------------------
 
     $respuesta =
         hacerPeticion(
             $urlMedicion,
             'POST',
-            json_encode([
-                'tipo' => 'O3'
-            ])
+            json_encode(
+                [
+                    'nombre_micro'
+                        => 'Fabian_GTI',
+
+                    'tipo'
+                        => '',
+
+                    'valor'
+                        => 1.234
+                ]
+            )
+        );
+
+
+    comprobar(
+        $respuesta['codigo'] === 400,
+        'POST con tipo vacio devuelve 400'
+    );
+
+
+    // --------------------------------------------------------
+    // TEST 6
+    // POST sin valor.
+    // --------------------------------------------------------
+
+    $respuesta =
+        hacerPeticion(
+            $urlMedicion,
+            'POST',
+            json_encode(
+                [
+                    'nombre_micro'
+                        => 'Fabian_GTI',
+
+                    'tipo'
+                        => 'O3'
+                ]
+            )
         );
 
 
@@ -241,15 +354,45 @@ try {
 
 
     // --------------------------------------------------------
-    // TEST 5
-    // POST con JSON inválido
+    // TEST 7
+    // POST con valor no numérico.
     // --------------------------------------------------------
 
     $respuesta =
         hacerPeticion(
             $urlMedicion,
             'POST',
-            '{esto no es json}'
+            json_encode(
+                [
+                    'nombre_micro'
+                        => 'Fabian_GTI',
+
+                    'tipo'
+                        => 'O3',
+
+                    'valor'
+                        => 'abc'
+                ]
+            )
+        );
+
+
+    comprobar(
+        $respuesta['codigo'] === 400,
+        'POST con valor no numerico devuelve 400'
+    );
+
+
+    // --------------------------------------------------------
+    // TEST 8
+    // POST con JSON inválido.
+    // --------------------------------------------------------
+
+    $respuesta =
+        hacerPeticion(
+            $urlMedicion,
+            'POST',
+            '{json invalido'
         );
 
 
@@ -260,8 +403,8 @@ try {
 
 
     // --------------------------------------------------------
-    // TEST 6
-    // GET correcto
+    // TEST 9
+    // GET correcto.
     // --------------------------------------------------------
 
     $respuesta =
@@ -285,17 +428,36 @@ try {
 
 
     comprobar(
-        is_array($datos)
-        || $datos === null,
-        'GET devuelve JSON valido'
+        is_array(
+            $datos
+        )
+            &&
+        array_key_exists(
+            'nombre_micro',
+            $datos
+        )
+            &&
+        array_key_exists(
+            'tipo',
+            $datos
+        )
+            &&
+        array_key_exists(
+            'valor',
+            $datos
+        )
+            &&
+        array_key_exists(
+            'fecha_hora',
+            $datos
+        ),
+        'GET devuelve medicion con la estructura correcta'
     );
 
 
-    echo PHP_EOL;
-
-
     echo
-        'TODOS LOS TESTS HAN PASADO'
+        PHP_EOL
+        . 'TODOS LOS TESTS HAN PASADO'
         . PHP_EOL;
 
 
@@ -303,13 +465,12 @@ try {
     Throwable $e
 ) {
 
-    echo PHP_EOL;
-
-
     echo
-        $e->getMessage()
+        'ERROR - '
+        . $e->getMessage()
         . PHP_EOL;
 
 
     exit(1);
+
 }
